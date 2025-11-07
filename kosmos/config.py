@@ -1,0 +1,427 @@
+"""
+Configuration management using Pydantic for validation.
+
+Loads configuration from environment variables and provides validated settings
+for all Kosmos components.
+"""
+
+from typing import List, Optional, Literal
+from pydantic import Field, field_validator, model_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from pathlib import Path
+import os
+
+
+class ClaudeConfig(BaseSettings):
+    """Claude/Anthropic configuration."""
+
+    api_key: str = Field(
+        description="Anthropic API key or '999...' for CLI mode",
+        alias="ANTHROPIC_API_KEY"
+    )
+    model: str = Field(
+        default="claude-3-5-sonnet-20241022",
+        description="Claude model to use",
+        alias="CLAUDE_MODEL"
+    )
+    max_tokens: int = Field(
+        default=4096,
+        ge=1,
+        le=200000,
+        description="Maximum tokens per request",
+        alias="CLAUDE_MAX_TOKENS"
+    )
+    temperature: float = Field(
+        default=0.7,
+        ge=0.0,
+        le=1.0,
+        description="Sampling temperature",
+        alias="CLAUDE_TEMPERATURE"
+    )
+
+    @property
+    def is_cli_mode(self) -> bool:
+        """Check if using CLI mode (API key is all 9s)."""
+        return self.api_key.replace('9', '') == ''
+
+    model_config = SettingsConfigDict(populate_by_name=True)
+
+
+class ResearchConfig(BaseSettings):
+    """Research workflow configuration."""
+
+    max_iterations: int = Field(
+        default=10,
+        ge=1,
+        le=100,
+        description="Maximum research iterations",
+        alias="MAX_RESEARCH_ITERATIONS"
+    )
+    enabled_domains: List[str] = Field(
+        default=["biology", "physics", "chemistry", "neuroscience"],
+        description="Enabled scientific domains",
+        alias="ENABLED_DOMAINS"
+    )
+    enabled_experiment_types: List[str] = Field(
+        default=["computational", "data_analysis", "literature_synthesis"],
+        description="Enabled experiment types",
+        alias="ENABLED_EXPERIMENT_TYPES"
+    )
+    min_novelty_score: float = Field(
+        default=0.6,
+        ge=0.0,
+        le=1.0,
+        description="Minimum novelty score for hypotheses",
+        alias="MIN_NOVELTY_SCORE"
+    )
+    enable_autonomous_iteration: bool = Field(
+        default=True,
+        description="Enable autonomous research iteration",
+        alias="ENABLE_AUTONOMOUS_ITERATION"
+    )
+
+    @field_validator("enabled_domains", mode="before")
+    @classmethod
+    def parse_domains(cls, v):
+        """Parse comma-separated domain string."""
+        if isinstance(v, str):
+            return [d.strip() for d in v.split(",")]
+        return v
+
+    @field_validator("enabled_experiment_types", mode="before")
+    @classmethod
+    def parse_experiment_types(cls, v):
+        """Parse comma-separated experiment types string."""
+        if isinstance(v, str):
+            return [e.strip() for e in v.split(",")]
+        return v
+
+    model_config = SettingsConfigDict(populate_by_name=True)
+
+
+class DatabaseConfig(BaseSettings):
+    """Database configuration."""
+
+    url: str = Field(
+        default="sqlite:///kosmos.db",
+        description="Database URL",
+        alias="DATABASE_URL"
+    )
+    echo: bool = Field(
+        default=False,
+        description="Enable SQL echo logging",
+        alias="DATABASE_ECHO"
+    )
+
+    @property
+    def is_sqlite(self) -> bool:
+        """Check if using SQLite."""
+        return self.url.startswith("sqlite")
+
+    model_config = SettingsConfigDict(populate_by_name=True)
+
+
+class LoggingConfig(BaseSettings):
+    """Logging configuration."""
+
+    level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = Field(
+        default="INFO",
+        description="Log level",
+        alias="LOG_LEVEL"
+    )
+    format: Literal["json", "text"] = Field(
+        default="json",
+        description="Log format",
+        alias="LOG_FORMAT"
+    )
+    file: Optional[str] = Field(
+        default="logs/kosmos.log",
+        description="Log file path (None for stdout only)",
+        alias="LOG_FILE"
+    )
+    debug_mode: bool = Field(
+        default=False,
+        description="Enable debug mode with verbose output",
+        alias="DEBUG_MODE"
+    )
+
+    model_config = SettingsConfigDict(populate_by_name=True)
+
+
+class LiteratureConfig(BaseSettings):
+    """Literature API configuration."""
+
+    semantic_scholar_api_key: Optional[str] = Field(
+        default=None,
+        description="Semantic Scholar API key",
+        alias="SEMANTIC_SCHOLAR_API_KEY"
+    )
+    pubmed_api_key: Optional[str] = Field(
+        default=None,
+        description="PubMed API key",
+        alias="PUBMED_API_KEY"
+    )
+
+    model_config = SettingsConfigDict(populate_by_name=True)
+
+
+class VectorDBConfig(BaseSettings):
+    """Vector database configuration."""
+
+    type: Literal["chromadb", "pinecone", "weaviate"] = Field(
+        default="chromadb",
+        description="Vector database type",
+        alias="VECTOR_DB_TYPE"
+    )
+    chroma_persist_directory: str = Field(
+        default=".chroma_db",
+        description="ChromaDB persistence directory",
+        alias="CHROMA_PERSIST_DIRECTORY"
+    )
+    pinecone_api_key: Optional[str] = Field(
+        default=None,
+        description="Pinecone API key",
+        alias="PINECONE_API_KEY"
+    )
+    pinecone_environment: Optional[str] = Field(
+        default=None,
+        description="Pinecone environment",
+        alias="PINECONE_ENVIRONMENT"
+    )
+    pinecone_index_name: Optional[str] = Field(
+        default="kosmos",
+        description="Pinecone index name",
+        alias="PINECONE_INDEX_NAME"
+    )
+
+    @model_validator(mode="after")
+    def validate_pinecone_config(self):
+        """Validate Pinecone configuration if selected."""
+        if self.type == "pinecone":
+            if not self.pinecone_api_key:
+                raise ValueError("PINECONE_API_KEY required when using Pinecone")
+            if not self.pinecone_environment:
+                raise ValueError("PINECONE_ENVIRONMENT required when using Pinecone")
+        return self
+
+    model_config = SettingsConfigDict(populate_by_name=True)
+
+
+class SafetyConfig(BaseSettings):
+    """Safety and security configuration."""
+
+    enable_safety_checks: bool = Field(
+        default=True,
+        description="Enable code safety checks",
+        alias="ENABLE_SAFETY_CHECKS"
+    )
+    max_experiment_execution_time: int = Field(
+        default=300,
+        ge=1,
+        description="Max execution time for experiments (seconds)",
+        alias="MAX_EXPERIMENT_EXECUTION_TIME"
+    )
+    max_memory_mb: int = Field(
+        default=2048,
+        ge=128,
+        description="Maximum memory usage (MB)",
+        alias="MAX_MEMORY_MB"
+    )
+    enable_sandboxing: bool = Field(
+        default=True,
+        description="Enable sandboxed code execution",
+        alias="ENABLE_SANDBOXING"
+    )
+    require_human_approval: bool = Field(
+        default=False,
+        description="Require human approval for high-risk operations",
+        alias="REQUIRE_HUMAN_APPROVAL"
+    )
+
+    model_config = SettingsConfigDict(populate_by_name=True)
+
+
+class PerformanceConfig(BaseSettings):
+    """Performance and caching configuration."""
+
+    enable_result_caching: bool = Field(
+        default=True,
+        description="Enable result caching",
+        alias="ENABLE_RESULT_CACHING"
+    )
+    cache_ttl: int = Field(
+        default=3600,
+        ge=0,
+        description="Cache TTL in seconds",
+        alias="CACHE_TTL"
+    )
+    parallel_experiments: int = Field(
+        default=0,
+        ge=0,
+        description="Number of parallel experiments (0 = sequential)",
+        alias="PARALLEL_EXPERIMENTS"
+    )
+
+    model_config = SettingsConfigDict(populate_by_name=True)
+
+
+class MonitoringConfig(BaseSettings):
+    """Monitoring and metrics configuration."""
+
+    enable_usage_stats: bool = Field(
+        default=True,
+        description="Enable usage statistics tracking",
+        alias="ENABLE_USAGE_STATS"
+    )
+    metrics_export_interval: int = Field(
+        default=60,
+        ge=0,
+        description="Metrics export interval in seconds (0 = disabled)",
+        alias="METRICS_EXPORT_INTERVAL"
+    )
+
+    model_config = SettingsConfigDict(populate_by_name=True)
+
+
+class DevelopmentConfig(BaseSettings):
+    """Development settings."""
+
+    hot_reload: bool = Field(
+        default=False,
+        description="Enable hot reload (development only)",
+        alias="HOT_RELOAD"
+    )
+    log_api_requests: bool = Field(
+        default=False,
+        description="Log all API requests",
+        alias="LOG_API_REQUESTS"
+    )
+    test_mode: bool = Field(
+        default=False,
+        description="Test mode (uses mocks)",
+        alias="TEST_MODE"
+    )
+
+    model_config = SettingsConfigDict(populate_by_name=True)
+
+
+class KosmosConfig(BaseSettings):
+    """
+    Master configuration for Kosmos AI Scientist.
+
+    Loads all configuration from environment variables with validation.
+
+    Example:
+        ```python
+        from kosmos.config import get_config
+
+        config = get_config()
+
+        # Access configuration
+        print(config.claude.model)
+        print(config.research.max_iterations)
+        print(config.database.url)
+
+        # Check Claude mode
+        if config.claude.is_cli_mode:
+            print("Using Claude Code CLI")
+        else:
+            print("Using Anthropic API")
+        ```
+    """
+
+    # Component configurations
+    claude: ClaudeConfig = Field(default_factory=ClaudeConfig)
+    research: ResearchConfig = Field(default_factory=ResearchConfig)
+    database: DatabaseConfig = Field(default_factory=DatabaseConfig)
+    logging: LoggingConfig = Field(default_factory=LoggingConfig)
+    literature: LiteratureConfig = Field(default_factory=LiteratureConfig)
+    vector_db: VectorDBConfig = Field(default_factory=VectorDBConfig)
+    safety: SafetyConfig = Field(default_factory=SafetyConfig)
+    performance: PerformanceConfig = Field(default_factory=PerformanceConfig)
+    monitoring: MonitoringConfig = Field(default_factory=MonitoringConfig)
+    development: DevelopmentConfig = Field(default_factory=DevelopmentConfig)
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore"
+    )
+
+    def create_directories(self):
+        """Create necessary directories if they don't exist."""
+        # Create log directory
+        if self.logging.file:
+            log_dir = Path(self.logging.file).parent
+            log_dir.mkdir(parents=True, exist_ok=True)
+
+        # Create ChromaDB directory if using ChromaDB
+        if self.vector_db.type == "chromadb":
+            Path(self.vector_db.chroma_persist_directory).mkdir(parents=True, exist_ok=True)
+
+    def validate_dependencies(self) -> List[str]:
+        """
+        Check if all required dependencies are available.
+
+        Returns:
+            List[str]: List of missing dependencies (empty if all present)
+        """
+        missing = []
+
+        # Check Claude
+        if not self.claude.api_key:
+            missing.append("ANTHROPIC_API_KEY not set")
+
+        # Check Pinecone if selected
+        if self.vector_db.type == "pinecone" and not self.vector_db.pinecone_api_key:
+            missing.append("PINECONE_API_KEY not set")
+
+        return missing
+
+    def to_dict(self) -> dict:
+        """
+        Convert configuration to dictionary.
+
+        Returns:
+            dict: Configuration as dictionary
+        """
+        return {
+            "claude": self.claude.model_dump(),
+            "research": self.research.model_dump(),
+            "database": self.database.model_dump(),
+            "logging": self.logging.model_dump(),
+            "literature": self.literature.model_dump(),
+            "vector_db": self.vector_db.model_dump(),
+            "safety": self.safety.model_dump(),
+            "performance": self.performance.model_dump(),
+            "monitoring": self.monitoring.model_dump(),
+            "development": self.development.model_dump(),
+        }
+
+
+# Singleton configuration instance
+_config: Optional[KosmosConfig] = None
+
+
+def get_config(reload: bool = False) -> KosmosConfig:
+    """
+    Get or create configuration singleton.
+
+    Args:
+        reload: If True, reload configuration from environment
+
+    Returns:
+        KosmosConfig: Configuration instance
+    """
+    global _config
+    if _config is None or reload:
+        _config = KosmosConfig()
+        _config.create_directories()
+    return _config
+
+
+def reset_config():
+    """Reset configuration singleton (useful for testing)."""
+    global _config
+    _config = None
