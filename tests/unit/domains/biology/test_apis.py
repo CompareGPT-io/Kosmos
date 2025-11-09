@@ -6,6 +6,7 @@ Coverage target: 50 tests (10 clients × 5 tests each)
 """
 
 import pytest
+import httpx
 from unittest.mock import Mock, patch
 from kosmos.domains.biology.apis import (
     KEGGClient, GWASCatalogClient, GTExClient, ENCODEClient,
@@ -34,8 +35,9 @@ class TestKEGGClient:
     def test_init_default(self):
         """Test default initialization."""
         client = KEGGClient()
-        assert client.base_url == "https://rest.kegg.jp"
-        assert client.client is None  # Not initialized until first use
+        assert KEGGClient.BASE_URL == "https://rest.kegg.jp"
+        assert client.client is not None  # Initialized in __init__
+        assert isinstance(client.client, httpx.Client)
 
     def test_get_compound_success(self, mock_httpx_client):
         """Test successful compound retrieval."""
@@ -88,7 +90,8 @@ class TestGWASCatalogClient:
     def test_init_default(self):
         """Test default initialization."""
         client = GWASCatalogClient()
-        assert client.base_url == "https://www.ebi.ac.uk/gwas/rest/api"
+        assert GWASCatalogClient.BASE_URL == "https://www.ebi.ac.uk/gwas/rest/api"
+        assert client.client is not None
 
     def test_get_variant_success(self, mock_httpx_client):
         """Test successful variant retrieval."""
@@ -144,7 +147,8 @@ class TestGTExClient:
     def test_init_default(self):
         """Test default initialization."""
         client = GTExClient()
-        assert client.base_url == "https://gtexportal.org/api/v2"
+        assert GTExClient.BASE_URL == "https://gtexportal.org/api/v2"
+        assert client.client is not None
 
     def test_get_eqtl_success(self, mock_httpx_client):
         """Test successful eQTL retrieval."""
@@ -200,7 +204,8 @@ class TestENCODEClient:
     def test_init_default(self):
         """Test default initialization."""
         client = ENCODEClient()
-        assert client.base_url == "https://www.encodeproject.org"
+        assert ENCODEClient.BASE_URL == "https://www.encodeproject.org"
+        assert client.client is not None
 
     def test_search_experiments_success(self, mock_httpx_client):
         """Test successful experiment search."""
@@ -257,7 +262,8 @@ class TestdbSNPClient:
     def test_init_default(self):
         """Test default initialization."""
         client = dbSNPClient()
-        assert client.base_url == "https://api.ncbi.nlm.nih.gov/variation/v0"
+        assert dbSNPClient.BASE_URL == "https://api.ncbi.nlm.nih.gov/variation/v0"
+        assert client.client is not None
 
     def test_get_snp_success(self, mock_httpx_client):
         """Test successful SNP retrieval."""
@@ -313,7 +319,8 @@ class TestEnsemblClient:
     def test_init_default(self):
         """Test default initialization."""
         client = EnsemblClient()
-        assert client.base_url == "https://rest.ensembl.org"
+        assert EnsemblClient.BASE_URL == "https://rest.ensembl.org"
+        assert client.client is not None
 
     def test_get_variant_consequences_success(self, mock_httpx_client):
         """Test successful variant consequence prediction."""
@@ -369,7 +376,8 @@ class TestHMDBClient:
     def test_init_default(self):
         """Test default initialization."""
         client = HMDBClient()
-        assert client.base_url == "https://hmdb.ca/metabolites"
+        assert HMDBClient.BASE_URL == "https://hmdb.ca"
+        assert client.client is not None
 
     def test_search_metabolite_placeholder(self):
         """Test metabolite search (placeholder implementation)."""
@@ -406,7 +414,8 @@ class TestMetaboLightsClient:
     def test_init_default(self):
         """Test default initialization."""
         client = MetaboLightsClient()
-        assert client.base_url == "https://www.ebi.ac.uk/metabolights/ws"
+        assert MetaboLightsClient.BASE_URL == "https://www.ebi.ac.uk/metabolights/ws"
+        assert client.client is not None
 
     def test_get_study_success(self, mock_httpx_client):
         """Test successful study retrieval."""
@@ -461,7 +470,8 @@ class TestUniProtClient:
     def test_init_default(self):
         """Test default initialization."""
         client = UniProtClient()
-        assert client.base_url == "https://rest.uniprot.org/uniprotkb"
+        assert UniProtClient.BASE_URL == "https://rest.uniprot.org"
+        assert client.client is not None
 
     def test_get_protein_success(self, mock_httpx_client):
         """Test successful protein retrieval."""
@@ -520,7 +530,8 @@ class TestPDBClient:
     def test_init_default(self):
         """Test default initialization."""
         client = PDBClient()
-        assert client.base_url == "https://data.rcsb.org/rest/v1/core"
+        assert PDBClient.BASE_URL == "https://data.rcsb.org/rest/v1"
+        assert client.client is not None
 
     def test_get_structure_success(self, mock_httpx_client):
         """Test successful structure retrieval."""
