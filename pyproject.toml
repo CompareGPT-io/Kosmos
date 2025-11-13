@@ -134,10 +134,10 @@ domain-extended = [
 kosmos = "kosmos.cli.main:cli_entrypoint"
 
 [project.urls]
-Homepage = "https://github.com/your-org/kosmos-ai-scientist"
-Documentation = "https://github.com/your-org/kosmos-ai-scientist/docs"
-Repository = "https://github.com/your-org/kosmos-ai-scientist"
-Issues = "https://github.com/your-org/kosmos-ai-scientist/issues"
+Homepage = "https://github.com/jimmc414/Kosmos"
+Documentation = "https://github.com/jimmc414/Kosmos/tree/master/docs"
+Repository = "https://github.com/jimmc414/Kosmos"
+Issues = "https://github.com/jimmc414/Kosmos/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]
