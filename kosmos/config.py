@@ -501,6 +501,48 @@ class PerformanceConfig(BaseSettings):
         alias="PARALLEL_EXPERIMENTS"
     )
 
+    # Concurrent operations configuration
+    enable_concurrent_operations: bool = Field(
+        default=False,
+        description="Enable concurrent research operations",
+        alias="ENABLE_CONCURRENT_OPERATIONS"
+    )
+    max_parallel_hypotheses: int = Field(
+        default=3,
+        ge=1,
+        le=10,
+        description="Maximum concurrent hypothesis evaluations",
+        alias="MAX_PARALLEL_HYPOTHESES"
+    )
+    max_concurrent_experiments: int = Field(
+        default=4,
+        ge=1,
+        le=16,
+        description="Maximum concurrent experiment executions",
+        alias="MAX_CONCURRENT_EXPERIMENTS"
+    )
+    max_concurrent_llm_calls: int = Field(
+        default=5,
+        ge=1,
+        le=20,
+        description="Maximum concurrent LLM API calls",
+        alias="MAX_CONCURRENT_LLM_CALLS"
+    )
+    llm_rate_limit_per_minute: int = Field(
+        default=50,
+        ge=1,
+        le=200,
+        description="LLM API rate limit per minute",
+        alias="LLM_RATE_LIMIT_PER_MINUTE"
+    )
+    async_batch_timeout: int = Field(
+        default=300,
+        ge=10,
+        le=3600,
+        description="Timeout for async batch operations (seconds)",
+        alias="ASYNC_BATCH_TIMEOUT"
+    )
+
     model_config = SettingsConfigDict(populate_by_name=True)
 
 
