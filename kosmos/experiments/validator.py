@@ -5,7 +5,7 @@ Validates experimental protocols for scientific rigor and completeness.
 """
 
 import logging
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from datetime import datetime
 
 from kosmos.models.experiment import (
