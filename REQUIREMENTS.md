@@ -1,6 +1,6 @@
 # Kosmos AI Scientist - Requirements Specification
 
-**Version:** 1.1 Draft
+**Version:** 1.2 Draft
 **Date:** 2025-11-20
 **Status:** In Review
 **Purpose:** Production readiness validation for Kosmos AI Scientist open-source implementation
@@ -198,6 +198,14 @@ This specification uses RFC 2119 key words to indicate requirement levels:
 
 **REQ-DAA-SAFE-007:** 🚫 The system MUST NOT execute code containing infinite loops or recursion without depth limits (detected via static analysis where possible).
 
+**REQ-DAA-SAFE-008:** Data analysis statements in generated reports SHOULD achieve ≥85% reproducibility rate when independently validated.
+
+**REQ-DAA-SAFE-009:** Literature review statements in generated reports SHOULD achieve ≥82% validation rate when checked against cited sources.
+
+**REQ-DAA-SAFE-010:** Synthesis and interpretation statements SHOULD be flagged as lower-confidence claims requiring human validation (target accuracy: ~58%).
+
+**REQ-DAA-SAFE-011:** Overall statement accuracy across all report types SHALL target ≥79% when validated by domain experts.
+
 ---
 
 ## 3. Literature Search Agent Requirements
@@ -240,6 +248,10 @@ This specification uses RFC 2119 key words to indicate requirement levels:
 
 **REQ-WM-SCHEMA-004:** The system MUST validate all data against the schema before insertion to prevent corruption.
 
+**REQ-WM-SCHEMA-005:** The structured world model SHALL store entities, relationships, experimental results, and open questions as distinct, queryable data types with appropriate schema definitions.
+
+**REQ-WM-SCHEMA-006:** The world model SHALL be updated after every task execution to ensure all agents have access to the latest research state.
+
 ---
 
 ### 4.2 CRUD Operations
@@ -281,6 +293,8 @@ This specification uses RFC 2119 key words to indicate requirement levels:
 **REQ-WM-CONC-003:** The system MUST implement optimistic or pessimistic locking to handle concurrent updates to the same entity.
 
 **REQ-WM-CONC-004:** The World Model MUST detect and report deadlock conditions if they occur during concurrent operations.
+
+**REQ-WM-CONC-005:** The World Model SHALL support queries from up to 200 concurrent agent rollouts without performance degradation or data corruption.
 
 ---
 
@@ -347,6 +361,8 @@ This specification uses RFC 2119 key words to indicate requirement levels:
 **REQ-ORCH-ITER-006:** 🚫 The Orchestrator MUST NOT allow infinite iteration loops - a hard maximum iteration limit MUST be enforced.
 
 **REQ-ORCH-ITER-007:** 🚫 The Orchestrator MUST NOT proceed to the next iteration if the World Model state is inconsistent or corrupted.
+
+**REQ-ORCH-ITER-008:** The Orchestrator SHALL allow manual override of automatic convergence detection to enable human-directed early termination or continuation beyond detected convergence.
 
 ---
 
@@ -488,6 +504,12 @@ This specification uses RFC 2119 key words to indicate requirement levels:
 
 **REQ-DATA-009:** 🚫 The system MUST NOT accept datasets without clear provenance information (source, collection date, data dictionary).
 
+**REQ-DATA-010:** 🚫 The system MUST NOT claim to support datasets larger than 5GB - this is a known system limitation.
+
+**REQ-DATA-011:** The system SHALL validate dataset size before processing and reject datasets exceeding 5GB with a clear error message explaining the limitation.
+
+**REQ-DATA-012:** 🚫 The system MUST NOT process raw image data or raw sequencing files - only preprocessed, structured data formats are supported.
+
 ---
 
 ## 9. Performance and Scalability Requirements
@@ -527,6 +549,12 @@ This specification uses RFC 2119 key words to indicate requirement levels:
 **REQ-PERF-RES-005:** 🚫 The system MUST NOT load entire large datasets (>1GB) into memory if streaming or chunked processing is feasible.
 
 **REQ-PERF-RES-006:** 🚫 The system MUST NOT execute analyses with exponential time complexity (O(2^n) or worse) on datasets with n > 1000 elements without user confirmation.
+
+**REQ-PERF-RES-007:** The system SHOULD track and report lines of code executed per research cycle for performance benchmarking.
+
+**REQ-PERF-RES-008:** The system SHOULD track and report number of papers read per research cycle for performance benchmarking.
+
+**REQ-PERF-RES-009:** The system SHOULD track and report agent rollout counts (data analysis, literature review) per research cycle for performance benchmarking.
 
 ---
 
@@ -575,6 +603,12 @@ This specification uses RFC 2119 key words to indicate requirement levels:
 **REQ-SCI-REPRO-003:** The system MUST version-lock all software dependencies to ensure long-term reproducibility.
 
 **REQ-SCI-REPRO-004:** Artifacts SHOULD include environment specifications (container image, dependency manifest) for exact reproduction.
+
+**REQ-SCI-REPRO-005:** 🚫 The system MUST NOT guarantee deterministic results across multiple runs with identical inputs - the discovery process is inherently stochastic.
+
+**REQ-SCI-REPRO-006:** The system SHALL document that multiple runs with identical inputs may produce different discoveries due to stochastic LLM responses and non-deterministic search strategies.
+
+**REQ-SCI-REPRO-007:** The system SHOULD provide variance and confidence metrics when multiple runs with identical inputs are executed for research validation.
 
 ---
 
@@ -674,34 +708,51 @@ This specification uses RFC 2119 key words to indicate requirement levels:
 
 ---
 
+## 14. System Limitations and Constraints
+
+This section documents known limitations explicitly acknowledged in the research paper to set realistic expectations for system capabilities.
+
+**REQ-LIMIT-001:** 🚫 The system MUST NOT support mid-cycle human interaction - research workflows execute autonomously once initiated.
+
+**REQ-LIMIT-002:** 🚫 The system MUST NOT autonomously access external public databases or APIs without explicit configuration by the user.
+
+**REQ-LIMIT-003:** The system SHALL warn users that research outcomes are sensitive to the phrasing of research objectives and that rephrasing may yield different results.
+
+**REQ-LIMIT-004:** The system SHALL warn users that it may generate statistically sound but conceptually "unorthodox" metrics that require human interpretation and validation.
+
+**REQ-LIMIT-005:** 🚫 The system MUST NOT conflate statistical significance with scientific importance - all findings MUST be marked as requiring human validation for scientific value assessment.
+
+---
+
 ## Requirements Summary
 
-### Total Requirements: 244
+### Total Requirements: 266
 
 **By Priority Level:**
-- MUST/SHALL (Critical): 200 requirements (82.0%)
-- SHOULD (Recommended): 38 requirements (15.6%)
-- MAY (Optional): 6 requirements (2.5%)
+- MUST/SHALL (Critical): 214 requirements (80.5%)
+- SHOULD (Recommended): 46 requirements (17.3%)
+- MAY (Optional): 6 requirements (2.3%)
 
 **By Requirement Type:**
-- Positive Requirements (MUST DO): 194 requirements (79.5%)
-- Negative Requirements (MUST NOT): 50 requirements (20.5%)
+- Positive Requirements (MUST DO): 210 requirements (78.9%)
+- Negative Requirements (MUST NOT): 56 requirements (21.1%)
 
 **By Category:**
-- Core Infrastructure: 33 requirements (13.5%)
-- Data Analysis Agent: 41 requirements (16.8%)
-- Literature Search Agent: 12 requirements (4.9%)
-- Structured World Model: 24 requirements (9.8%)
-- Orchestrator: 32 requirements (13.1%)
-- Integration and Coordination: 12 requirements (4.9%)
-- Output and Traceability: 15 requirements (6.1%)
-- Domain and Data: 14 requirements (5.7%)
-- Performance and Scalability: 15 requirements (6.1%)
-- Scientific Validity: 19 requirements (7.8%)
-- Security and Safety: 15 requirements (6.1%)
-- Testing and Validation: 9 requirements (3.7%)
-- Documentation: 5 requirements (2.0%)
-- Meta-Requirements: 3 requirements (1.2%)
+- Core Infrastructure: 33 requirements (12.4%)
+- Data Analysis Agent: 45 requirements (16.9%)
+- Literature Search Agent: 12 requirements (4.5%)
+- Structured World Model: 27 requirements (10.2%)
+- Orchestrator: 33 requirements (12.4%)
+- Integration and Coordination: 12 requirements (4.5%)
+- Output and Traceability: 15 requirements (5.6%)
+- Domain and Data: 17 requirements (6.4%)
+- Performance and Scalability: 18 requirements (6.8%)
+- Scientific Validity: 22 requirements (8.3%)
+- Security and Safety: 15 requirements (5.6%)
+- Testing and Validation: 9 requirements (3.4%)
+- Documentation: 5 requirements (1.9%)
+- System Limitations: 5 requirements (1.9%)
+- Meta-Requirements: 3 requirements (1.1%)
 
 ---
 
@@ -801,6 +852,13 @@ This appendix provides a quick reference to all negative requirements (MUST NOT 
 **REQ-SCI-ANA-006:** 🚫 No p-values without effect sizes and confidence intervals
 **REQ-SCI-ANA-007:** 🚫 No cherry-picking or selective reporting of analyses
 **REQ-SCI-VAL-003:** 🚫 No demonstrably false conclusions
+**REQ-SCI-REPRO-005:** 🚫 No guaranteeing deterministic results - discovery process is inherently stochastic
+
+### System Limitations & Constraints
+
+**REQ-LIMIT-001:** 🚫 No mid-cycle human interaction support
+**REQ-LIMIT-002:** 🚫 No autonomous external database access without explicit configuration
+**REQ-LIMIT-005:** 🚫 No conflating statistical significance with scientific importance without human validation
 
 ### Data Integrity
 
@@ -808,6 +866,8 @@ This appendix provides a quick reference to all negative requirements (MUST NOT 
 **REQ-DATA-007:** 🚫 No proceeding with critical data quality issues (>50% missing, schema mismatches)
 **REQ-DATA-008:** 🚫 No mixing data from different domains without explicit instruction
 **REQ-DATA-009:** 🚫 No accepting datasets without provenance information
+**REQ-DATA-010:** 🚫 No claiming support for datasets >5GB (known limitation)
+**REQ-DATA-012:** 🚫 No processing raw image data or raw sequencing files
 **REQ-DOMAIN-002:** 🚫 No domain-specific code modifications required
 
 ### World Model Integrity
@@ -864,6 +924,7 @@ This appendix provides a quick reference to all negative requirements (MUST NOT 
 |---------|------|--------|---------|
 | 1.0 Draft | 2025-11-20 | Initial | Complete requirements specification for review |
 | 1.1 Draft | 2025-11-20 | Updated | Added 41 negative requirements (MUST NOT) across all categories; Added Appendix A: Negative Requirements Index; Updated statistics (203→244 total requirements) |
+| 1.2 Draft | 2025-11-20 | Updated | Added 22 paper-specific requirements based on detailed Kosmos paper analysis: performance benchmarks (3), accuracy targets by statement type (4), dataset size limitations (3), stochastic behavior documentation (3), known system limitations (5), world model specifics (3), convergence override (1); Added Section 14: System Limitations and Constraints; Updated Appendix A with 6 new negative requirements; Updated statistics (244→266 total requirements) |
 
 ---
 
