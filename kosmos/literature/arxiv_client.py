@@ -2,11 +2,26 @@
 arXiv API client for searching and retrieving scientific papers.
 
 Uses the official arxiv Python package with caching support.
+Note: The arxiv package may have compatibility issues with Python 3.11+
+due to sgmllib3k dependency. This module includes fallback handling.
 """
 
-import arxiv
 from typing import List, Optional
 from datetime import datetime
+import logging
+
+# Handle arxiv import with fallback for Python 3.11+ compatibility
+try:
+    import arxiv
+    HAS_ARXIV = True
+except ImportError as e:
+    HAS_ARXIV = False
+    arxiv = None
+    logging.warning(
+        f"arxiv package not available: {e}. "
+        "arXiv search functionality will be limited. "
+        "Consider using Semantic Scholar as an alternative."
+    )
 
 from kosmos.literature.base_client import (
     BaseLiteratureClient,
@@ -33,8 +48,22 @@ class ArxivClient(BaseLiteratureClient):
         Args:
             api_key: Not used for arXiv (public API), kept for interface consistency
             cache_enabled: Whether to enable caching for API responses
+
+        Raises:
+            RuntimeError: If arxiv package is not available
         """
         super().__init__(api_key=api_key, cache_enabled=cache_enabled)
+
+        # Check if arxiv is available
+        if not HAS_ARXIV:
+            self.logger.warning(
+                "arxiv package not available. ArxivClient will return empty results. "
+                "Use SemanticScholarClient as an alternative."
+            )
+            self.client = None
+            self.max_results = 10
+            self.cache = None
+            return
 
         # Get configuration
         config = get_config()
@@ -92,6 +121,11 @@ class ArxivClient(BaseLiteratureClient):
             ```
         """
         if not self._validate_query(query):
+            return []
+
+        # Return empty if arxiv not available
+        if not HAS_ARXIV or self.client is None:
+            self.logger.warning("arxiv package not available, returning empty results")
             return []
 
         # Check cache
@@ -158,6 +192,11 @@ class ArxivClient(BaseLiteratureClient):
         """
         # Remove "arXiv:" prefix if present
         paper_id = paper_id.replace("arXiv:", "").strip()
+
+        # Return None if arxiv not available
+        if not HAS_ARXIV or self.client is None:
+            self.logger.warning("arxiv package not available, cannot retrieve paper")
+            return None
 
         # Check cache
         cache_params = {"paper_id": paper_id}

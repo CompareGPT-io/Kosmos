@@ -6,7 +6,7 @@ Complements the SQLAlchemy Experiment model in kosmos.db.models.
 """
 
 from typing import List, Optional, Dict, Any, Union
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 from datetime import datetime
 from enum import Enum
 
@@ -488,9 +488,7 @@ class ExperimentProtocol(BaseModel):
             "generated_by": self.generated_by,
         }
 
-    class Config:
-        """Pydantic config."""
-        use_enum_values = False
+    model_config = ConfigDict(use_enum_values=False)
 
 
 class ExperimentDesignRequest(BaseModel):

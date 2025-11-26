@@ -7,7 +7,7 @@ Pydantic models for safety reports, incidents, approvals, and ethical guidelines
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 from enum import Enum
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class RiskLevel(str, Enum):
@@ -43,6 +43,8 @@ class ApprovalStatus(str, Enum):
 class SafetyViolation(BaseModel):
     """Detailed information about a safety violation."""
 
+    model_config = ConfigDict(frozen=False)
+
     type: ViolationType
     severity: RiskLevel
     message: str
@@ -50,12 +52,11 @@ class SafetyViolation(BaseModel):
     details: Dict[str, Any] = Field(default_factory=dict)
     timestamp: datetime = Field(default_factory=datetime.now)
 
-    class Config:
-        frozen = False
-
 
 class SafetyReport(BaseModel):
     """Report from safety validation checks."""
+
+    model_config = ConfigDict(frozen=False)
 
     passed: bool
     risk_level: RiskLevel
@@ -92,12 +93,11 @@ class SafetyReport(BaseModel):
                 f"{violation_count} violations, {warning_count} warnings"
             )
 
-    class Config:
-        frozen = False
-
 
 class SafetyIncident(BaseModel):
     """Record of a safety incident for logging and audit trail."""
+
+    model_config = ConfigDict(frozen=False)
 
     incident_id: str
     timestamp: datetime = Field(default_factory=datetime.now)
@@ -110,12 +110,11 @@ class SafetyIncident(BaseModel):
     resolved: bool = False
     resolution_notes: Optional[str] = None
 
-    class Config:
-        frozen = False
-
 
 class EthicalGuideline(BaseModel):
     """Ethical research guideline for validation."""
+
+    model_config = ConfigDict(frozen=False)
 
     guideline_id: str
     category: str  # e.g., "human_subjects", "animal_welfare", "data_privacy", "environmental"
@@ -125,12 +124,11 @@ class EthicalGuideline(BaseModel):
     keywords: List[str] = Field(default_factory=list)  # For keyword-based validation
     severity_if_violated: RiskLevel = RiskLevel.HIGH
 
-    class Config:
-        frozen = False
-
 
 class ApprovalRequest(BaseModel):
     """Request for human approval of an operation."""
+
+    model_config = ConfigDict(frozen=False)
 
     request_id: str
     timestamp: datetime = Field(default_factory=datetime.now)
@@ -171,12 +169,11 @@ class ApprovalRequest(BaseModel):
         if self.is_expired():
             self.status = ApprovalStatus.EXPIRED
 
-    class Config:
-        frozen = False
-
 
 class ResourceLimit(BaseModel):
     """Resource consumption limits for experiments."""
+
+    model_config = ConfigDict(frozen=False)
 
     max_cpu_cores: Optional[float] = None
     max_memory_mb: Optional[int] = None
@@ -187,12 +184,11 @@ class ResourceLimit(BaseModel):
     allow_file_write: bool = False
     allow_subprocess: bool = False
 
-    class Config:
-        frozen = False
-
 
 class EmergencyStopStatus(BaseModel):
     """Status of emergency stop mechanism."""
+
+    model_config = ConfigDict(frozen=False)
 
     is_active: bool = False
     triggered_at: Optional[datetime] = None
@@ -216,6 +212,3 @@ class EmergencyStopStatus(BaseModel):
         self.triggered_by = None
         self.reason = None
         self.affected_experiments = []
-
-    class Config:
-        frozen = False

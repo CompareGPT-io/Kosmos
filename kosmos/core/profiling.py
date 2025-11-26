@@ -18,7 +18,7 @@ from datetime import datetime
 from pathlib import Path
 from enum import Enum
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict, field_serializer
 
 logger = logging.getLogger(__name__)
 
@@ -133,10 +133,11 @@ class ProfileResult(BaseModel):
         description="Raw profiling data (cProfile stats)"
     )
 
-    class Config:
-        json_encoders = {
-            datetime: lambda v: v.isoformat() if v else None
-        }
+    @field_serializer('started_at', 'completed_at')
+    @classmethod
+    def serialize_datetime(cls, v: Optional[datetime]) -> Optional[str]:
+        """Serialize datetime fields to ISO format."""
+        return v.isoformat() if v else None
 
 
 @dataclass

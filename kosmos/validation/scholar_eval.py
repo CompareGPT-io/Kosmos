@@ -440,9 +440,9 @@ Provide scores as JSON object only, no additional text."""
             reasoning="Mock evaluation (no LLM client provided)"
         )
 
-    def batch_evaluate(self, findings: list[Dict]) -> list[ScholarEvalScore]:
+    async def batch_evaluate(self, findings: list[Dict]) -> list[ScholarEvalScore]:
         """
-        Evaluate multiple findings.
+        Evaluate multiple findings asynchronously.
 
         Args:
             findings: List of finding dictionaries
@@ -450,12 +450,9 @@ Provide scores as JSON object only, no additional text."""
         Returns:
             List of ScholarEvalScore objects
         """
-        scores = []
-        for finding in findings:
-            score = self.evaluate_finding(finding)
-            scores.append(score)
-
-        return scores
+        import asyncio
+        tasks = [self.evaluate_finding(finding) for finding in findings]
+        return await asyncio.gather(*tasks)
 
     def get_validation_statistics(self, scores: list[ScholarEvalScore]) -> Dict:
         """

@@ -6,7 +6,7 @@ Complements the SQLAlchemy Hypothesis model in kosmos.db.models.
 """
 
 from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field, validator, field_validator
+from pydantic import BaseModel, Field, validator, field_validator, ConfigDict
 from datetime import datetime
 from enum import Enum
 
@@ -152,9 +152,7 @@ class Hypothesis(BaseModel):
             return False
         return self.novelty_score >= threshold
 
-    class Config:
-        """Pydantic config."""
-        use_enum_values = False
+    model_config = ConfigDict(use_enum_values=False)
 
 
 class HypothesisGenerationRequest(BaseModel):

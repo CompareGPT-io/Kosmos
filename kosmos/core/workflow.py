@@ -9,7 +9,7 @@ INITIALIZING → GENERATING_HYPOTHESES → DESIGNING_EXPERIMENTS → EXECUTING
 from enum import Enum
 from typing import List, Dict, Optional, Any
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 import logging
 
 logger = logging.getLogger(__name__)
@@ -45,18 +45,19 @@ class NextAction(str, Enum):
 class WorkflowTransition(BaseModel):
     """A transition between workflow states."""
 
+    model_config = ConfigDict(use_enum_values=True)
+
     from_state: WorkflowState
     to_state: WorkflowState
     action: str
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     metadata: Dict[str, Any] = Field(default_factory=dict)
 
-    class Config:
-        use_enum_values = True
-
 
 class ResearchPlan(BaseModel):
     """The overall research plan for autonomous iteration."""
+
+    model_config = ConfigDict(use_enum_values=True)
 
     research_question: str
     domain: Optional[str] = None
@@ -91,9 +92,6 @@ class ResearchPlan(BaseModel):
     # Additional metadata
     success_criteria: Dict[str, Any] = Field(default_factory=dict)
     resource_limits: Dict[str, Any] = Field(default_factory=dict)
-
-    class Config:
-        use_enum_values = True
 
     def update_timestamp(self):
         """Update the updated_at timestamp."""

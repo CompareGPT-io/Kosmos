@@ -12,6 +12,7 @@ This module provides:
 """
 
 import os
+import threading
 from typing import Any, Dict, List, Optional, Union
 import json
 import logging
@@ -573,8 +574,9 @@ class ClaudeClient:
         self.model_overrides = 0
 
 
-# Singleton instance for convenience
+# Singleton instance for convenience with thread safety
 _default_client: Optional[Union[ClaudeClient, LLMProvider]] = None
+_client_lock = threading.Lock()
 
 
 def get_client(reset: bool = False, use_provider_system: bool = True) -> Union[ClaudeClient, LLMProvider]:
@@ -582,6 +584,7 @@ def get_client(reset: bool = False, use_provider_system: bool = True) -> Union[C
     Get or create default LLM client singleton.
 
     This function provides backward compatibility while enabling the new multi-provider system.
+    Thread-safe: Uses a lock to prevent race conditions during initialization.
 
     Args:
         reset: If True, create a new client instance
@@ -605,35 +608,44 @@ def get_client(reset: bool = False, use_provider_system: bool = True) -> Union[C
     """
     global _default_client
 
-    if _default_client is None or reset:
-        if use_provider_system:
-            # Use new provider system
-            try:
-                from kosmos.config import get_config
-                from kosmos.core.providers import get_provider_from_config
+    # Fast path: if client exists and not resetting, return without lock
+    if _default_client is not None and not reset:
+        return _default_client
 
-                config = get_config()
-                _default_client = get_provider_from_config(config)
-                logger.info(f"Initialized {config.llm_provider} provider via config")
+    with _client_lock:
+        # Double-check after acquiring lock
+        if _default_client is not None and not reset:
+            return _default_client
 
-            except Exception as e:
-                logger.warning(f"Failed to initialize provider from config: {e}. Falling back to AnthropicProvider")
-                # Fallback to AnthropicProvider instance (LLMProvider-compatible)
-                from kosmos.core.providers.anthropic import AnthropicProvider
-                fallback_config = {
-                    'api_key': os.environ.get('ANTHROPIC_API_KEY'),
-                    'model': 'claude-3-5-sonnet-20241022',
-                    'max_tokens': 4096,
-                    'temperature': 0.7,
-                    'enable_cache': True,
-                }
-                _default_client = AnthropicProvider(fallback_config)
-        else:
-            # Legacy mode: use ClaudeClient directly
-            _default_client = ClaudeClient()
-            logger.info("Initialized legacy ClaudeClient")
+        if _default_client is None or reset:
+            if use_provider_system:
+                # Use new provider system
+                try:
+                    from kosmos.config import get_config
+                    from kosmos.core.providers import get_provider_from_config
 
-    return _default_client
+                    config = get_config()
+                    _default_client = get_provider_from_config(config)
+                    logger.info(f"Initialized {config.llm_provider} provider via config")
+
+                except Exception as e:
+                    logger.warning(f"Failed to initialize provider from config: {e}. Falling back to AnthropicProvider")
+                    # Fallback to AnthropicProvider instance (LLMProvider-compatible)
+                    from kosmos.core.providers.anthropic import AnthropicProvider
+                    fallback_config = {
+                        'api_key': os.environ.get('ANTHROPIC_API_KEY'),
+                        'model': 'claude-3-5-sonnet-20241022',
+                        'max_tokens': 4096,
+                        'temperature': 0.7,
+                        'enable_cache': True,
+                    }
+                    _default_client = AnthropicProvider(fallback_config)
+            else:
+                # Legacy mode: use ClaudeClient directly
+                _default_client = ClaudeClient()
+                logger.info("Initialized legacy ClaudeClient")
+
+        return _default_client
 
 
 def get_provider() -> LLMProvider:
