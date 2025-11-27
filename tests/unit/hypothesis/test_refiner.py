@@ -1,6 +1,3 @@
-import pytest
-pytest.skip('Test needs API update to match current implementation', allow_module_level=True)
-
 """
 Tests for HypothesisRefiner (Phase 7).
 
@@ -19,7 +16,49 @@ from kosmos.hypothesis.refiner import (
     HypothesisLineage,
 )
 from kosmos.models.hypothesis import Hypothesis, HypothesisStatus
-from kosmos.models.result import ExperimentResult, ResultStatus
+from kosmos.models.result import ExperimentResult, ResultStatus, ExecutionMetadata
+
+
+# ============================================================================
+# Helper Functions
+# ============================================================================
+
+def create_mock_metadata(experiment_id: str = "exp_001", protocol_id: str = "proto_001"):
+    """Create a minimal mock ExecutionMetadata for testing."""
+    now = datetime.utcnow()
+    return ExecutionMetadata(
+        start_time=now,
+        end_time=now,
+        duration_seconds=1.0,
+        python_version="3.11.11",
+        platform="linux",
+        experiment_id=experiment_id,
+        protocol_id=protocol_id,
+    )
+
+
+def create_experiment_result(
+    result_id: str = "result_001",
+    hypothesis_id: str = "hyp_001",
+    supports_hypothesis: bool = True,
+    p_value: float = 0.01,
+    effect_size: float = 0.75,
+    status: ResultStatus = ResultStatus.SUCCESS,
+) -> ExperimentResult:
+    """Create an ExperimentResult with required fields for testing."""
+    exp_id = f"exp_{result_id}"
+    proto_id = f"proto_{result_id}"
+    return ExperimentResult(
+        id=result_id,
+        experiment_id=exp_id,
+        protocol_id=proto_id,
+        hypothesis_id=hypothesis_id,
+        status=status,
+        supports_hypothesis=supports_hypothesis,
+        primary_p_value=p_value,
+        primary_effect_size=effect_size,
+        metadata=create_mock_metadata(exp_id, proto_id),
+    )
 
 
 # ============================================================================
@@ -45,13 +84,12 @@ def sample_hypothesis():
 @pytest.fixture
 def sample_supported_result():
     """Create a sample supported experiment result."""
-    return ExperimentResult(
-        id="result_001",
+    return create_experiment_result(
+        result_id="result_001",
         hypothesis_id="hyp_001",
         supports_hypothesis=True,
-        primary_p_value=0.01,
-        primary_effect_size=0.75,
-        primary_test="t-test",
+        p_value=0.01,
+        effect_size=0.75,
         status=ResultStatus.SUCCESS,
     )
 
@@ -59,13 +97,12 @@ def sample_supported_result():
 @pytest.fixture
 def sample_rejected_result():
     """Create a sample rejected experiment result."""
-    return ExperimentResult(
-        id="result_002",
+    return create_experiment_result(
+        result_id="result_002",
         hypothesis_id="hyp_001",
         supports_hypothesis=False,
-        primary_p_value=0.65,
-        primary_effect_size=0.12,
-        primary_test="t-test",
+        p_value=0.65,
+        effect_size=0.12,
         status=ResultStatus.SUCCESS,
     )
 
@@ -73,13 +110,12 @@ def sample_rejected_result():
 @pytest.fixture
 def sample_inconclusive_result():
     """Create a sample inconclusive experiment result."""
-    return ExperimentResult(
-        id="result_003",
+    return create_experiment_result(
+        result_id="result_003",
         hypothesis_id="hyp_001",
         supports_hypothesis=None,
-        primary_p_value=0.08,
-        primary_effect_size=0.35,
-        primary_test="t-test",
+        p_value=0.08,
+        effect_size=0.35,
         status=ResultStatus.SUCCESS,
     )
 
@@ -87,14 +123,13 @@ def sample_inconclusive_result():
 @pytest.fixture
 def sample_failed_result():
     """Create a sample failed execution result."""
-    return ExperimentResult(
-        id="result_004",
+    return create_experiment_result(
+        result_id="result_004",
         hypothesis_id="hyp_001",
         supports_hypothesis=None,
-        primary_p_value=None,
-        primary_effect_size=None,
-        primary_test="t-test",
-        status=ResultStatus.FAILURE,
+        p_value=None,
+        effect_size=None,
+        status=ResultStatus.FAILED,
     )
 
 
@@ -306,13 +341,12 @@ class TestRetirementDecisionBayesian:
         weak_rejections = []
         for i in range(10):
             weak_rejections.append(
-                ExperimentResult(
-                    id=f"result_{i}",
+                create_experiment_result(
+                    result_id=f"result_{i}",
                     hypothesis_id="hyp_001",
                     supports_hypothesis=False,
-                    primary_p_value=0.02,  # Significant
-                    primary_effect_size=0.6,  # Medium effect
-                    primary_test="t-test",
+                    p_value=0.02,  # Significant
+                    effect_size=0.6,  # Medium effect
                     status=ResultStatus.SUCCESS,
                 )
             )
@@ -531,23 +565,21 @@ class TestContradictionDetection:
         )
 
         # Opposite outcomes
-        result1_supported = ExperimentResult(
-            id="r1",
+        result1_supported = create_experiment_result(
+            result_id="r1",
             hypothesis_id=hyp1.id,
             supports_hypothesis=True,
-            primary_p_value=0.01,
-            primary_effect_size=0.7,
-            primary_test="t-test",
+            p_value=0.01,
+            effect_size=0.7,
             status=ResultStatus.SUCCESS,
         )
 
-        result2_rejected = ExperimentResult(
-            id="r2",
+        result2_rejected = create_experiment_result(
+            result_id="r2",
             hypothesis_id=hyp2.id,
             supports_hypothesis=False,
-            primary_p_value=0.65,
-            primary_effect_size=0.1,
-            primary_test="t-test",
+            p_value=0.65,
+            effect_size=0.1,
             status=ResultStatus.SUCCESS,
         )
 
@@ -580,23 +612,21 @@ class TestContradictionDetection:
             domain="psychology",
         )
 
-        result1 = ExperimentResult(
-            id="r1",
+        result1 = create_experiment_result(
+            result_id="r1",
             hypothesis_id=hyp1.id,
             supports_hypothesis=True,
-            primary_p_value=0.01,
-            primary_effect_size=0.7,
-            primary_test="t-test",
+            p_value=0.01,
+            effect_size=0.7,
             status=ResultStatus.SUCCESS,
         )
 
-        result2 = ExperimentResult(
-            id="r2",
+        result2 = create_experiment_result(
+            result_id="r2",
             hypothesis_id=hyp2.id,
             supports_hypothesis=False,
-            primary_p_value=0.65,
-            primary_effect_size=0.1,
-            primary_test="t-test",
+            p_value=0.65,
+            effect_size=0.1,
             status=ResultStatus.SUCCESS,
         )
 
@@ -624,23 +654,21 @@ class TestContradictionDetection:
         )
 
         # Same outcome (both supported)
-        result1 = ExperimentResult(
-            id="r1",
+        result1 = create_experiment_result(
+            result_id="r1",
             hypothesis_id=hyp1.id,
             supports_hypothesis=True,
-            primary_p_value=0.01,
-            primary_effect_size=0.7,
-            primary_test="t-test",
+            p_value=0.01,
+            effect_size=0.7,
             status=ResultStatus.SUCCESS,
         )
 
-        result2 = ExperimentResult(
-            id="r2",
+        result2 = create_experiment_result(
+            result_id="r2",
             hypothesis_id=hyp2.id,
             supports_hypothesis=True,
-            primary_p_value=0.02,
-            primary_effect_size=0.6,
-            primary_test="t-test",
+            p_value=0.02,
+            effect_size=0.6,
             status=ResultStatus.SUCCESS,
         )
 

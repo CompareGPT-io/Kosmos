@@ -1,12 +1,8 @@
-import pytest
-pytest.skip('Test needs API update to match current implementation', allow_module_level=True)
-
 """
 Tests for kosmos.literature.arxiv_client module.
 """
 
 import pytest
-import responses
 from unittest.mock import Mock, patch, MagicMock
 
 from kosmos.literature.arxiv_client import ArxivClient

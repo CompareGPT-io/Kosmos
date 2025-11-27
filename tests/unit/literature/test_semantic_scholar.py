@@ -1,13 +1,20 @@
-import pytest
-pytest.skip('Test needs API update to match current implementation', allow_module_level=True)
-
 """
 Tests for kosmos.literature.semantic_scholar module.
 """
 
 import pytest
-import responses
 from unittest.mock import Mock, patch
+
+# This test file requires the 'responses' library for HTTP mocking
+try:
+    import responses
+    HAS_RESPONSES = True
+except ImportError:
+    HAS_RESPONSES = False
+    responses = None
+
+if not HAS_RESPONSES:
+    pytest.skip("Test requires 'responses' library (pip install responses)", allow_module_level=True)
 
 from kosmos.literature.semantic_scholar import SemanticScholarClient
 from kosmos.literature.base_client import PaperMetadata

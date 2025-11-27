@@ -1,12 +1,10 @@
-import pytest
-pytest.skip('Test needs API update to match current implementation', allow_module_level=True)
+# Skip removed - test restored (may need API updates)
 
 """
 Tests for kosmos.literature.pubmed_client module.
 """
 
 import pytest
-import responses
 from unittest.mock import Mock, patch
 from Bio import Entrez
 

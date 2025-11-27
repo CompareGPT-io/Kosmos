@@ -14,7 +14,7 @@ from unittest.mock import MagicMock, Mock
 import pytest
 from dotenv import load_dotenv
 
-from kosmos.literature.base_client import PaperMetadata
+from kosmos.literature.base_client import PaperMetadata, PaperSource
 
 
 # ============================================================================
@@ -105,11 +105,27 @@ def sample_papers_data(sample_papers_json: Path) -> List[Dict]:
     return data["papers"]
 
 
+def _source_to_enum(source_str: str) -> PaperSource:
+    """Convert source string to PaperSource enum."""
+    mapping = {
+        "arxiv": PaperSource.ARXIV,
+        "semantic_scholar": PaperSource.SEMANTIC_SCHOLAR,
+        "pubmed": PaperSource.PUBMED,
+        "unknown": PaperSource.UNKNOWN,
+        "manual": PaperSource.MANUAL,
+    }
+    return mapping.get(source_str.lower(), PaperSource.UNKNOWN)
+
+
 @pytest.fixture
 def sample_paper_metadata(sample_papers_data: List[Dict]) -> PaperMetadata:
     """Return a single sample PaperMetadata object."""
     paper_dict = sample_papers_data[0]  # "Attention Is All You Need"
+    source_str = paper_dict.get("source", "unknown")
+    paper_id = paper_dict.get("arxiv_id") or paper_dict.get("doi") or f"paper_{hash(paper_dict['title'])}"
     return PaperMetadata(
+        id=paper_id,
+        source=_source_to_enum(source_str),
         title=paper_dict["title"],
         authors=paper_dict["authors"],
         abstract=paper_dict["abstract"],
@@ -121,7 +137,6 @@ def sample_paper_metadata(sample_papers_data: List[Dict]) -> PaperMetadata:
         url=paper_dict.get("url"),
         pdf_url=paper_dict.get("pdf_url"),
         citation_count=paper_dict.get("citation_count", 0),
-        source=paper_dict.get("source", "unknown"),
     )
 
 
@@ -130,8 +145,12 @@ def sample_papers_list(sample_papers_data: List[Dict]) -> List[PaperMetadata]:
     """Return a list of sample PaperMetadata objects."""
     papers = []
     for paper_dict in sample_papers_data:
+        source_str = paper_dict.get("source", "unknown")
+        paper_id = paper_dict.get("arxiv_id") or paper_dict.get("doi") or f"paper_{hash(paper_dict['title'])}"
         papers.append(
             PaperMetadata(
+                id=paper_id,
+                source=_source_to_enum(source_str),
                 title=paper_dict["title"],
                 authors=paper_dict["authors"],
                 abstract=paper_dict["abstract"],
@@ -143,7 +162,6 @@ def sample_papers_list(sample_papers_data: List[Dict]) -> List[PaperMetadata]:
                 url=paper_dict.get("url"),
                 pdf_url=paper_dict.get("pdf_url"),
                 citation_count=paper_dict.get("citation_count", 0),
-                source=paper_dict.get("source", "unknown"),
             )
         )
     return papers

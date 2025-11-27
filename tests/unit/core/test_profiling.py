@@ -12,7 +12,7 @@ TODO: Rewrite tests to match actual ExecutionProfiler API.
 
 import pytest
 
-pytest.skip("Test file needs rewriting to match actual profiling API", allow_module_level=True)
+# Skip removed - tests restored (may need API updates)
 
 import time
 from unittest.mock import MagicMock, patch

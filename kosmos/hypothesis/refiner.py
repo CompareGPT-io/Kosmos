@@ -13,11 +13,12 @@ from enum import Enum
 import logging
 import json
 import numpy as np
+from pydantic import BaseModel, Field
 
 from kosmos.models.hypothesis import Hypothesis, HypothesisStatus
 from kosmos.models.result import ExperimentResult, ResultStatus
 from kosmos.core.llm import get_client
-from kosmos.knowledge.vector_db import VectorDB, HAS_CHROMADB
+from kosmos.knowledge.vector_db import PaperVectorDB as VectorDB, HAS_CHROMADB
 
 logger = logging.getLogger(__name__)
 
@@ -236,7 +237,7 @@ Respond with JSON:
         """Count consecutive failures (rejected or error) from most recent results."""
         count = 0
         for result in reversed(results):
-            if result.supports_hypothesis is False or result.status == ResultStatus.FAILURE:
+            if result.supports_hypothesis is False or result.status == ResultStatus.FAILED:
                 count += 1
             else:
                 break
@@ -825,7 +826,3 @@ Respond with JSON:
             )
 
         return "\n\n".join(formatted)
-
-
-# Import BaseModel at the end to avoid circular import
-from pydantic import BaseModel, Field
