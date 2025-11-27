@@ -241,6 +241,20 @@ PARALLEL_EXPERIMENTS=0  # 0 = sequential
 
 # Testing
 TEST_MODE=true|false
+
+# Database Services (Optional)
+NEO4J_URI=bolt://localhost:7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=...
+
+# Cache
+REDIS_URL=redis://localhost:6379/0
+
+# Vector DB
+CHROMA_PERSIST_DIRECTORY=./chroma_db
+
+# External APIs
+SEMANTIC_SCHOLAR_API_KEY=...
 ```
 
 ---
@@ -305,6 +319,8 @@ sample_research_plan, sample_paper_metadata
 @pytest.mark.requires_api_key
 @pytest.mark.requires_neo4j
 @pytest.mark.requires_claude
+@pytest.mark.unit          # Unit tests
+@pytest.mark.smoke         # Smoke tests
 ```
 
 ---
@@ -391,20 +407,30 @@ sample_research_plan, sample_paper_metadata
 - Direct code execution (no Docker)
 - No Redis, no Neo4j
 - Sample fixture data for literature
+- **Test command:** `./scripts/run-tests.sh sanity`
 
-### Tier 2: Integration (requires API keys)
-- Real LLM calls (Anthropic or OpenAI)
+### Tier 2: Smoke (Component validation)
+- Mock LLM responses
 - SQLite database
 - Direct code execution
-- Mock literature APIs
+- Basic component checks
+- **Test command:** `./scripts/run-tests.sh smoke`
 
-### Tier 3: Full (requires Docker + all services)
+### Tier 3: Integration (requires API keys, mocked services)
+- Real LLM calls (Anthropic or OpenAI or local Ollama)
+- SQLite database
+- Direct code execution
+- Mocked Neo4j, Redis, ChromaDB
+- **Test command:** `pytest -m integration`
+
+### Tier 4: Full E2E (requires Docker + all services)
 - Real LLM calls
 - PostgreSQL database
 - Docker sandboxed execution
 - Neo4j knowledge graph
 - Redis caching
 - Real literature API calls
+- **Test command:** `./scripts/run-tests.sh e2e` or `./scripts/run-tests.sh full`
 
 ---
 

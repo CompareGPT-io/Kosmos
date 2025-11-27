@@ -6,6 +6,19 @@ Analyze the Kosmos AI Scientist codebase to produce a comprehensive report ident
 
 ---
 
+## Skill Integration
+
+The Kosmos E2E testing skill can automatically generate a dependency report using:
+
+```bash
+# Generate E2E_TESTING_DEPENDENCY_REPORT.md
+python -c "from lib.report_generator import generate_dependency_report; generate_dependency_report()"
+```
+
+This prompt provides guidance for manual analysis or when additional depth is needed beyond the automated report.
+
+---
+
 ## Project Context
 
 **Kosmos** is an autonomous AI scientist system implementing 6 critical gaps from the research paper "Kosmos: An AI Scientist for Autonomous Discovery" (Lu et al., 2024). The system has:
@@ -104,6 +117,7 @@ execution = ["docker>=7.0.0"]           # Docker client
 | **ChromaDB** | Vector embeddings | Semantic search | CHROMA_PERSIST_DIRECTORY |
 | **PostgreSQL** | Production database | Full DB tests | DATABASE_URL |
 | **Jupyter Kernel Gateway** | Code execution in containers | Sandbox execution | Docker + image |
+| **Semantic Scholar** | Literature search | Literature tests | SEMANTIC_SCHOLAR_API_KEY |
 
 ### 3. Configuration Dependencies
 
@@ -139,7 +153,19 @@ SEMANTIC_SCHOLAR_API_KEY=...
 | Redis | Running instance | `redis-cli ping` |
 | PostgreSQL | Running instance | `pg_isready` |
 
-### 5. Test Infrastructure Dependencies
+### 5. Python Environment Dependencies
+
+| Check | Purpose | Verification |
+|-------|---------|--------------|
+| Python version | Compatibility (3.10 recommended) | `python --version` |
+| Package availability | Core packages installed | `pip list` |
+| Version conflicts | NumPy, scipy versions | Check import errors |
+
+**Known Python 3.11+ Issues:**
+- `arxiv` package fails due to `sgmllib3k` incompatibility
+- Some scipy sub-packages may have issues
+
+### 6. Test Infrastructure Dependencies
 
 ```bash
 # Test framework packages
@@ -261,6 +287,19 @@ For each API mismatch:
 - Fix location (test or implementation)
 - Estimated effort
 
+### Section 4.5: Service Availability Matrix
+
+The skill provides an automated service matrix via `get_service_matrix()`:
+
+| Test Category | Anthropic | Docker | Neo4j | Redis | ChromaDB |
+|---------------|-----------|--------|-------|-------|----------|
+| unit_gap_modules | Mock | No | No | No | No |
+| unit_literature | Mock | No | No | No | No |
+| unit_knowledge | Mock | No | Yes | No | Yes |
+| unit_execution | No | Yes | No | No | No |
+| integration | Real/Mock | No | Mock | Mock | Mock |
+| e2e | Real | Yes | Optional | Optional | Optional |
+
 ### Section 5: Dependency Resolution Strategy
 
 #### Tier 1: Quick Wins (< 1 day)
@@ -284,6 +323,46 @@ For each API mismatch:
 - Service containers (Docker services for Neo4j, Redis, etc.)
 - Secret management for API keys
 - Test parallelization strategy
+
+### Section 6.5: Recommended Test Tier
+
+Based on infrastructure detection, the skill recommends:
+- `full_e2e`: Has LLM + Docker + Neo4j
+- `partial_e2e`: Has LLM + Docker
+- `api_only`: Has LLM only
+- `mock_only`: No external providers available
+
+### Section 6.6: Dependency → Blocked Tests Matrix
+
+For each dependency issue, map to affected tests:
+
+| Dependency | Status | Blocked Test Files | Blocked Test Count | Priority |
+|------------|--------|-------------------|-------------------|----------|
+| ANTHROPIC_API_KEY | Missing | tests/e2e/*, tests/integration/* | ~15 | P0 |
+| Docker | Not Running | tests/unit/execution/*, tests/e2e/* | ~10 | P0 |
+| Neo4j | Not Configured | tests/unit/knowledge/test_graph.py | ~5 | P1 |
+| arxiv package | Import Error | tests/unit/literature/test_arxiv*.py | ~8 | P2 |
+| ... | ... | ... | ... | ... |
+
+This matrix enables downstream tools to calculate fix priority by test impact.
+
+### Section 6.7: Fix Sequencing Dependencies
+
+Some fixes must be done in order:
+
+```
+Docker daemon running
+    └── Before: Docker sandbox image build
+            └── Before: ProductionExecutor tests
+
+Python packages installed
+    └── Before: Module import tests
+            └── Before: Integration tests
+
+LLM API key set
+    └── Before: Real LLM tests
+            └── Before: Full E2E workflow
+```
 
 ### Section 7: Test Environment Profiles
 
@@ -380,6 +459,12 @@ Produce the report as a Markdown document with:
 5. Links to relevant source files (relative paths)
 
 The report should be saved as `E2E_TESTING_DEPENDENCY_REPORT.md` in the project root.
+
+**Note:** The skill can auto-generate this report:
+```python
+from lib.report_generator import generate_dependency_report
+generate_dependency_report()  # Saves to E2E_TESTING_DEPENDENCY_REPORT.md
+```
 
 ---
 
