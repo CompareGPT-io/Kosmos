@@ -15,6 +15,7 @@ from kosmos.literature.arxiv_client import ArxivClient
 from kosmos.literature.semantic_scholar import SemanticScholarClient
 from kosmos.literature.pubmed_client import PubMedClient
 from kosmos.literature.pdf_extractor import get_pdf_extractor
+from kosmos.config import get_config
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +66,12 @@ class UnifiedLiteratureSearch:
 
         self.pdf_extractor = get_pdf_extractor()
 
-        logger.info(f"Initialized unified search with {len(self.clients)} sources")
+        # Load timeout config
+        config = get_config()
+        self.search_timeout = config.literature.search_timeout
+        self.pdf_timeout = config.literature.pdf_download_timeout
+
+        logger.info(f"Initialized unified search with {len(self.clients)} sources (timeout={self.search_timeout}s)")
 
     def search(
         self,
@@ -155,7 +161,7 @@ class UnifiedLiteratureSearch:
             }
 
             try:
-                for future in as_completed(future_to_source, timeout=60):
+                for future in as_completed(future_to_source, timeout=self.search_timeout):
                     source = future_to_source[future]
                     try:
                         papers = future.result()
@@ -166,7 +172,7 @@ class UnifiedLiteratureSearch:
             except FuturesTimeoutError:
                 completed_sources = [s.value for s, c in search_clients.items()
                                      if any(f.done() for f in future_to_source if future_to_source[f] == s)]
-                logger.warning(f"Literature search timed out after 60s. Completed sources: {completed_sources}")
+                logger.warning(f"Literature search timed out after {self.search_timeout}s. Completed sources: {completed_sources}")
 
         logger.info(f"Total papers retrieved (before dedup): {len(all_papers)}")
 
@@ -184,7 +190,7 @@ class UnifiedLiteratureSearch:
 
         # Extract full text if requested
         if extract_full_text:
-            self._extract_full_text(all_papers)
+            self._extract_full_text(all_papers, self.pdf_timeout)
 
         return all_papers
 

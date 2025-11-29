@@ -65,8 +65,9 @@ class PubMedClient(BaseLiteratureClient):
             f"rate_limit={self.rate_limit} req/s)"
         )
 
-        # Timeout for Entrez API calls (seconds)
-        self.api_timeout = 30
+        # Timeout for Entrez API calls (seconds) - loaded from config
+        config = get_config()
+        self.api_timeout = config.literature.api_timeout
 
     def _run_with_timeout(self, func, *args, **kwargs):
         """

@@ -393,6 +393,20 @@ class LiteratureConfig(BaseSettings):
         description="PDF download timeout in seconds",
         alias="PDF_DOWNLOAD_TIMEOUT"
     )
+    search_timeout: int = Field(
+        default=60,
+        ge=10,
+        le=300,
+        description="Literature search timeout in seconds (all sources combined)",
+        alias="LITERATURE_SEARCH_TIMEOUT"
+    )
+    api_timeout: int = Field(
+        default=30,
+        ge=5,
+        le=120,
+        description="Individual API call timeout in seconds (PubMed, etc.)",
+        alias="LITERATURE_API_TIMEOUT"
+    )
 
     model_config = SettingsConfigDict(populate_by_name=True)
 
