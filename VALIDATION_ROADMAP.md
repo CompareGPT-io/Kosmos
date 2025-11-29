@@ -83,7 +83,7 @@ The skipped tests are not optional - they represent untested critical path compo
 
 ## Phase 3: Extended Workflow Validation
 
-**Status:** In Progress (3.1 Complete)
+**Status:** In Progress (3.1 Complete, 3.2 Blocked by Context Limit)
 
 **Objective:** Prove the system runs autonomously for extended periods.
 
@@ -99,11 +99,17 @@ The skipped tests are not optional - they represent untested critical path compo
 - 7 LLM requests, 25,988 tokens, $0.00 cost (local Ollama)
 
 ### 3.2 Short Extended Run (5 cycles)
-- [ ] Run 5-cycle workflow with 5 tasks per cycle
-- [ ] Document where workflow succeeds or stalls
-- [ ] Fix state machine issues as they surface
-- [ ] Verify hypothesis refinement occurs between cycles
-- [ ] Measure: does quality improve across iterations?
+- [x] Run 5-cycle workflow with 5 tasks per cycle - Session 12 (blocked)
+- [x] Document where workflow succeeds or stalls - Session 12
+- [x] Fix state machine issues as they surface - Session 12 (bug fixes applied)
+- [ ] Verify hypothesis refinement occurs between cycles (blocked)
+- [ ] Measure: does quality improve across iterations? (blocked)
+
+**Session 12 Findings:**
+- Bug fixes applied: max_results duplicate, NoneType validation
+- 5-cycle workflow blocked by Ollama 8k context limit
+- Experiment designer prompts exceed context, causing 300s timeouts
+- **Requires larger context model (DeepSeek 64k+)**
 
 ### 3.3 Medium Extended Run (10 cycles)
 - [ ] Run 10-cycle workflow with 10 tasks per cycle
@@ -258,4 +264,4 @@ After each phase, create:
 ---
 
 *Roadmap created: 2025-11-27*
-*Last updated: 2025-11-28 Session 11 (Phase 3.1 Complete)*
+*Last updated: 2025-11-28 Session 12 (Bug fixes done, Phase 3.2 blocked by context limit)*

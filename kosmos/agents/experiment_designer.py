@@ -453,6 +453,12 @@ class ExperimentDesignerAgent(BaseAgent):
 
             # Parse and validate protocol
             protocol_data = response if isinstance(response, dict) else json.loads(response)
+
+            # Validate protocol data to prevent NoneType errors downstream
+            if not protocol_data or not isinstance(protocol_data, dict):
+                logger.error(f"Failed to generate valid protocol data: {response}")
+                raise ValueError("LLM returned invalid protocol data")
+
             protocol = self._parse_claude_protocol(protocol_data, hypothesis, experiment_type)
 
             return protocol

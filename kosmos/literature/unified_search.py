@@ -134,6 +134,10 @@ class UnifiedLiteratureSearch:
         # Search all sources in parallel
         all_papers: List[PaperMetadata] = []
 
+        # Remove max_results from kwargs if present to avoid duplicate argument
+        # (max_results_per_source is passed explicitly to _search_source)
+        kwargs_filtered = {k: v for k, v in kwargs.items() if k != 'max_results'}
+
         with ThreadPoolExecutor(max_workers=len(search_clients)) as executor:
             future_to_source = {
                 executor.submit(
@@ -145,7 +149,7 @@ class UnifiedLiteratureSearch:
                     fields,
                     year_from,
                     year_to,
-                    **kwargs
+                    **kwargs_filtered
                 ): source
                 for source, client in search_clients.items()
             }
@@ -331,13 +335,15 @@ class UnifiedLiteratureSearch:
             List of papers from this source
         """
         try:
+            # Remove max_results from kwargs if present to avoid duplicate argument
+            kwargs_filtered = {k: v for k, v in kwargs.items() if k != 'max_results'}
             return client.search(
                 query=query,
                 max_results=max_results,
                 fields=fields,
                 year_from=year_from,
                 year_to=year_to,
-                **kwargs
+                **kwargs_filtered
             )
         except Exception as e:
             logger.error(f"Error searching {source.value}: {e}")
