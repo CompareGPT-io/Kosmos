@@ -82,6 +82,9 @@ class AgentRegistry:
             self._agent_types[agent.agent_type] = []
         self._agent_types[agent.agent_type].append(agent.agent_id)
 
+        # Set up message routing callback so agent.send_message() delivers messages
+        agent.set_message_router(self._route_message)
+
         logger.info(f"Registered agent {agent.agent_type} ({agent.agent_id})")
         return agent.agent_id
 
@@ -215,6 +218,32 @@ class AgentRegistry:
     # ========================================================================
     # MESSAGE ROUTING
     # ========================================================================
+
+    def _route_message(self, message: AgentMessage):
+        """
+        Internal callback for routing messages from agents.
+
+        This is set as the message_router on agents when they register,
+        allowing agent.send_message() to automatically deliver messages.
+
+        Args:
+            message: Message to route to target agent
+        """
+        to_agent = self.get_agent(message.to_agent)
+
+        if not to_agent:
+            logger.error(f"Cannot route message: target agent {message.to_agent} not found")
+            return
+
+        # Deliver to recipient
+        to_agent.receive_message(message)
+
+        # Store in history
+        self._message_history.append(message)
+        if len(self._message_history) > self._max_history_size:
+            self._message_history.pop(0)
+
+        logger.debug(f"Routed message from {message.from_agent} to {message.to_agent}")
 
     def send_message(
         self,

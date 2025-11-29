@@ -403,7 +403,7 @@ class PaperVectorDB:
             "title": paper.title[:500] if paper.title else "",  # ChromaDB has size limits
             "year": paper.year or 0,
             "citation_count": paper.citation_count,
-            "domain": paper.fields[0] if paper.fields else "unknown"
+            "domain": paper.fields[0] if paper.fields and len(paper.fields) > 0 else "unknown"
         }
 
         # Add identifiers

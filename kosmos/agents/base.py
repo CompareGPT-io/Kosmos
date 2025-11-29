@@ -129,6 +129,7 @@ class BaseAgent:
         # Message handling
         self.message_queue: List[AgentMessage] = []
         self.message_handlers: Dict[str, Callable] = {}
+        self._message_router: Optional[Callable[[AgentMessage], None]] = None
 
         # State management
         self.state_data: Dict[str, Any] = {}
@@ -262,8 +263,14 @@ class BaseAgent:
         self.messages_sent += 1
         logger.debug(f"Agent {self.agent_id} sending message to {to_agent}: {message_type}")
 
-        # In real implementation, this would go through message broker/queue
-        # For now, we just return the message
+        # Use message router if available to actually deliver the message
+        if self._message_router is not None:
+            try:
+                self._message_router(message)
+                logger.debug(f"Message routed from {self.agent_id} to {to_agent}")
+            except Exception as e:
+                logger.error(f"Failed to route message from {self.agent_id} to {to_agent}: {e}")
+
         return message
 
     def receive_message(self, message: AgentMessage):
@@ -314,6 +321,20 @@ class BaseAgent:
         """
         self.message_handlers[message_type] = handler
         logger.debug(f"Registered handler for {message_type} in agent {self.agent_id}")
+
+    def set_message_router(self, router: Callable[[AgentMessage], None]):
+        """
+        Set the message router callback for delivering messages.
+
+        When set, send_message() will use this callback to actually deliver
+        messages to their target agents. This enables proper message routing
+        through a central registry or message broker.
+
+        Args:
+            router: Callable that takes an AgentMessage and delivers it
+        """
+        self._message_router = router
+        logger.debug(f"Message router set for agent {self.agent_id}")
 
     # ========================================================================
     # STATE PERSISTENCE

@@ -249,7 +249,7 @@ class SemanticLiteratureSearch:
 
         # Apply diversity filtering (simplified version)
         recommended = []
-        seen_titles = set(p.title.lower() for p in based_on_papers)
+        seen_titles = set(p.title.lower() for p in based_on_papers if p is not None and p.title)
 
         for result in results:
             title = result["metadata"].get("title", "").lower()

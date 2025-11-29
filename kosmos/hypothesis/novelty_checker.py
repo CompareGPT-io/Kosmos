@@ -443,10 +443,12 @@ class NoveltyChecker:
                     f"Maximum similarity: {max_similarity:.2f}. "
                     f"Consider revising or expanding this hypothesis."
                 )
-            elif similar_papers:
+            elif similar_papers and len(similar_papers) > 0:
+                paper_title = similar_papers[0].title if similar_papers[0].title else "Untitled"
+                paper_year = similar_papers[0].year if similar_papers[0].year else "unknown"
                 return (
                     f"LOW NOVELTY (score: {novelty_score:.2f}). "
-                    f"Very similar to existing work: '{similar_papers[0].title}' ({similar_papers[0].year}). "
+                    f"Very similar to existing work: '{paper_title}' ({paper_year}). "
                     f"Maximum similarity: {max_similarity:.2f}. "
                     f"This hypothesis may already be addressed in the literature."
                 )

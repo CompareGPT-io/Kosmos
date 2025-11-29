@@ -404,7 +404,7 @@ class CitationFormatter:
             lines.append(f"TI  - {paper.title}")
 
         # Authors
-        for author in paper.authors:
+        for author in (paper.authors or []):
             lines.append(f"AU  - {author.name}")
 
         # Year
@@ -458,15 +458,18 @@ class CitationFormatter:
             )
             ```
         """
+        # Filter out None papers
+        valid_papers = [p for p in papers if p is not None]
+
         # Sort papers
         if sort_by == "author":
-            sorted_papers = sorted(papers, key=lambda p: p.authors[0].name if p.authors else "")
+            sorted_papers = sorted(valid_papers, key=lambda p: p.authors[0].name if p.authors and len(p.authors) > 0 else "")
         elif sort_by == "year":
-            sorted_papers = sorted(papers, key=lambda p: p.year or 0, reverse=True)
+            sorted_papers = sorted(valid_papers, key=lambda p: p.year or 0, reverse=True)
         elif sort_by == "title":
-            sorted_papers = sorted(papers, key=lambda p: p.title)
+            sorted_papers = sorted(valid_papers, key=lambda p: p.title or "")
         else:
-            sorted_papers = papers
+            sorted_papers = valid_papers
 
         # Format each citation
         citations = []

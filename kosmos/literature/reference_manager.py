@@ -374,8 +374,9 @@ class ReferenceManager:
         elif paper.pubmed_id:
             return f"pubmed_{hashlib.md5(paper.pubmed_id.encode()).hexdigest()[:8]}"
         else:
-            # Hash title
-            title_hash = hashlib.md5(paper.title.encode()).hexdigest()[:8]
+            # Hash title (with null check)
+            title = paper.title or "untitled"
+            title_hash = hashlib.md5(title.encode()).hexdigest()[:8]
             return f"ref_{title_hash}"
 
     def _find_duplicate(self, paper: PaperMetadata) -> Optional[str]:
@@ -463,9 +464,11 @@ class ReferenceManager:
         data = []
 
         for paper in papers:
+            if paper is None:
+                continue
             paper_dict = {
-                "title": paper.title,
-                "authors": [a.name for a in paper.authors],
+                "title": paper.title or "",
+                "authors": [a.name for a in (paper.authors or [])],
                 "year": paper.year,
                 "abstract": paper.abstract,
                 "doi": paper.doi,
@@ -489,9 +492,11 @@ class ReferenceManager:
 
             writer.writeheader()
             for paper in papers:
+                if paper is None:
+                    continue
                 writer.writerow({
-                    'title': paper.title,
-                    'authors': "; ".join([a.name for a in paper.authors]),
+                    'title': paper.title or '',
+                    'authors': "; ".join([a.name for a in (paper.authors or [])]),
                     'year': paper.year or '',
                     'journal': paper.journal or '',
                     'doi': paper.doi or '',
@@ -528,6 +533,8 @@ class DeduplicationEngine:
         duplicate_groups = {}
 
         for paper in papers:
+            if paper is None or not paper.title:
+                continue
             if paper.doi:
                 if paper.doi in seen_dois:
                     # Duplicate found
@@ -564,6 +571,8 @@ class DeduplicationEngine:
         processed_titles = []
 
         for paper in papers:
+            if paper is None or not paper.title:
+                continue
             is_duplicate = False
 
             for i, existing_title in enumerate(processed_titles):
@@ -609,8 +618,11 @@ class DeduplicationEngine:
         duplicate_groups = {}
 
         for paper in papers:
+            if paper is None:
+                continue
             is_duplicate = False
             group_key = None
+            paper_title = paper.title or "untitled"
 
             # Check DOI
             if paper.doi and paper.doi in seen_dois:
@@ -639,7 +651,7 @@ class DeduplicationEngine:
                 # Add to duplicate group
                 if group_key not in duplicate_groups:
                     duplicate_groups[group_key] = []
-                duplicate_groups[group_key].append(paper.title)
+                duplicate_groups[group_key].append(paper_title)
             else:
                 # Add to unique papers
                 unique_papers.append(paper)
@@ -655,7 +667,7 @@ class DeduplicationEngine:
                     seen_titles.append(paper.title)
 
                 # Initialize group
-                duplicate_groups[paper.title] = [paper.title]
+                duplicate_groups[paper_title] = [paper_title]
 
         return unique_papers, duplicate_groups
 
