@@ -85,6 +85,7 @@ class OpenAIProvider(LLMProvider):
                 - temperature: Sampling temperature (default: 0.7)
                 - base_url: Custom base URL for OpenAI-compatible APIs
                 - organization: OpenAI organization ID (optional)
+                - timeout: Request timeout in seconds (default: 120)
         """
         super().__init__(config)
 
@@ -113,6 +114,7 @@ class OpenAIProvider(LLMProvider):
         self.temperature = temperature if temperature is not None else 0.7
         self.base_url = get_config_value('base_url') or os.environ.get('OPENAI_BASE_URL')
         self.organization = get_config_value('organization') or os.environ.get('OPENAI_ORGANIZATION')
+        self.timeout = get_config_value('timeout') or 120
 
         # Detect provider type from base_url
         if self.base_url:
@@ -189,7 +191,7 @@ class OpenAIProvider(LLMProvider):
                 api_args["stop"] = stop_sequences
 
             # Call OpenAI API
-            response = self.client.chat.completions.create(**api_args)
+            response = self.client.chat.completions.create(**api_args, timeout=self.timeout)
 
             # Extract text and usage
             text = response.choices[0].message.content
@@ -300,6 +302,7 @@ class OpenAIProvider(LLMProvider):
                 messages=openai_messages,
                 max_tokens=max_tokens,
                 temperature=temperature,
+                timeout=self.timeout,
             )
 
             # Extract and convert

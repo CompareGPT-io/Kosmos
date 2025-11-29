@@ -72,6 +72,7 @@ class AnthropicProvider(LLMProvider):
                 - enable_cache: Enable caching (default: True)
                 - enable_auto_model_selection: Auto-select Haiku/Sonnet (default: False)
                 - base_url: (Optional) Alternative endpoint for Anthropic API
+                - timeout: Request timeout in seconds (default: 120)
         """
         super().__init__(config)
 
@@ -94,6 +95,7 @@ class AnthropicProvider(LLMProvider):
         self.temperature = config.get('temperature', 0.7)
         self.enable_cache = config.get('enable_cache', True)
         self.enable_auto_model_selection = config.get('enable_auto_model_selection', False)
+        self.timeout = config.get('timeout', 120)
 
         # Model variants for auto-selection
         self.haiku_model = _DEFAULT_CLAUDE_HAIKU_MODEL
@@ -243,6 +245,7 @@ class AnthropicProvider(LLMProvider):
                 system=system or "",
                 messages=messages,
                 stop_sequences=stop_sequences or [],
+                timeout=self.timeout,
             )
 
             # Extract text and usage
@@ -363,6 +366,7 @@ class AnthropicProvider(LLMProvider):
                 temperature=temperature,
                 system=system_prompt or "",
                 messages=anthropic_messages,
+                timeout=self.timeout,
             )
 
             # Extract and convert

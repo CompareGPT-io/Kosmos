@@ -68,6 +68,13 @@ class ClaudeConfig(BaseSettings):
         description="Custom base URL for Claude-compatible APIs",
         alias="CLAUDE_BASE_URL"
     )
+    timeout: int = Field(
+        default=120,
+        ge=1,
+        le=600,
+        description="Request timeout in seconds",
+        alias="CLAUDE_TIMEOUT"
+    )
 
     @property
     def is_cli_mode(self) -> bool:
@@ -121,6 +128,13 @@ class OpenAIConfig(BaseSettings):
         default=None,
         description="OpenAI organization ID (optional)",
         alias="OPENAI_ORGANIZATION"
+    )
+    timeout: int = Field(
+        default=120,
+        ge=1,
+        le=600,
+        description="Request timeout in seconds",
+        alias="OPENAI_TIMEOUT"
     )
 
     model_config = SettingsConfigDict(populate_by_name=True)
