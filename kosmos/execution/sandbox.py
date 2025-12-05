@@ -307,7 +307,8 @@ class DockerSandbox:
                     # Try graceful shutdown
                     try:
                         container.stop(timeout=5)
-                    except Exception:
+                    except Exception as e:
+                        logger.warning("Graceful container stop failed, forcing kill: %s", e)
                         container.kill()
 
                     exit_status = {'StatusCode': -1}

@@ -261,7 +261,20 @@ class BaseAgent:
         )
 
         self.messages_sent += 1
-        logger.debug(f"Agent {self.agent_id} sending message to {to_agent}: {message_type}")
+        # Log agent message if enabled
+        try:
+            from kosmos.config import get_config
+            if get_config().logging.log_agent_messages:
+                logger.debug(
+                    "[MSG] %s -> %s: type=%s, correlation_id=%s, content_preview=%.100s",
+                    self.agent_id,
+                    to_agent,
+                    message_type.value,
+                    correlation_id or message.id,
+                    str(content)[:100]
+                )
+        except Exception:
+            pass  # Config not available
 
         # Use message router if available to actually deliver the message
         if self._message_router is not None:
@@ -283,7 +296,19 @@ class BaseAgent:
         self.messages_received += 1
         self.message_queue.append(message)
 
-        logger.debug(f"Agent {self.agent_id} received message from {message.from_agent}: {message.type}")
+        # Log received message if enabled
+        try:
+            from kosmos.config import get_config
+            if get_config().logging.log_agent_messages:
+                logger.debug(
+                    "[MSG] %s <- %s: type=%s, msg_id=%s",
+                    self.agent_id,
+                    message.from_agent,
+                    message.type.value,
+                    message.id
+                )
+        except Exception:
+            pass  # Config not available
 
         # Process message
         try:

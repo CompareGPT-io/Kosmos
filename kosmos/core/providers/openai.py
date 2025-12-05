@@ -180,8 +180,8 @@ class OpenAIProvider(LLMProvider):
                 from kosmos.config import get_config
                 config = get_config()
                 log_llm = config.logging.log_llm_calls
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug("Failed to load LLM call logging config: %s", e)
 
             # Build messages (OpenAI format: system is first message)
             messages = []

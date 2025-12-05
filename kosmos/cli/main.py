@@ -80,8 +80,8 @@ def setup_logging(verbose: bool = False, debug: bool = False, trace: bool = Fals
             config.logging.log_workflow_transitions = True
             config.logging.stage_tracking_enabled = True
             config.logging.debug_level = 3
-        except Exception:
-            pass  # Config may not be available yet
+        except Exception as e:
+            logger.debug("Verbose mode config not applied (config not ready): %s", e)
 
     logging.basicConfig(
         level=level,
@@ -137,8 +137,8 @@ def main(
             from kosmos.config import get_config
             config = get_config()
             config.logging.debug_modules = [m.strip() for m in debug_modules.split(",")]
-        except Exception:
-            pass  # Config may not be available yet
+        except Exception as e:
+            logger.debug("Debug modules config not applied (config not ready): %s", e)
 
     # Initialize database
     try:

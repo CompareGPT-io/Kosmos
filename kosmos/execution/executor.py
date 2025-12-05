@@ -65,7 +65,8 @@ class ExecutionResult:
         if self.profile_result:
             try:
                 result['profile_data'] = model_to_dict(self.profile_result)
-            except Exception:
+            except Exception as e:
+                logger.debug("Failed to serialize profile data: %s", e)
                 result['profile_data'] = None
 
         return result

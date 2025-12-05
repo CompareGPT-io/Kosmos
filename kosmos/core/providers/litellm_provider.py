@@ -295,8 +295,8 @@ class LiteLLMProvider(LLMProvider):
             from kosmos.config import get_config
             config = get_config()
             log_llm = config.logging.log_llm_calls
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Failed to load LLM call logging config: %s", e)
 
         messages = self._build_messages(prompt, system)
         effective_max_tokens = self._get_effective_max_tokens(max_tokens)

@@ -191,6 +191,23 @@ The project is suitable for experimentation and further development, not product
 4. Add cost tracking and budget limits
 5. Document actual performance vs paper claims
 
+## Implementation Status
+
+### Recent Fixes (December 2025)
+
+| Category | Status | Details |
+|----------|--------|---------|
+| Code Quality | 100% | All silent exception handlers now log appropriately |
+| Debug Mode | 100% | All config flags fully implemented with config-gating |
+| Test Coverage | 55% | 15 critical modules pending (see `120525_implementation_gaps.md`) |
+
+### Debug Features Complete
+- `--trace` flag for maximum verbosity
+- `log_llm_calls` - Token counts and latency for all providers
+- `log_agent_messages` - Inter-agent message routing with correlation tracking
+- `log_workflow_transitions` - State machine transitions with timing
+- Stage tracking with JSONL output
+
 ## Limitations
 
 1. **Docker required**: Gap 4 execution environment requires Docker. Without it, code execution uses mock implementations.
@@ -453,6 +470,23 @@ Shows action execution:
 ```
 [ACTION] Executing: GENERATE_HYPOTHESIS
 ```
+
+#### Agent Message Logging (`[MSG]`)
+
+Shows inter-agent communication (enable with `LOG_AGENT_MESSAGES=true` or `--trace`):
+
+```
+[MSG] research_director -> hypothesis_generator: type=REQUEST, correlation_id=abc123, content_preview={"task": "generate"...
+[MSG] hypothesis_generator <- research_director: type=REQUEST, msg_id=abc123
+```
+
+Fields:
+- `->`: Outgoing message (sender -> recipient)
+- `<-`: Incoming message (recipient <- sender)
+- `type`: Message type (REQUEST, RESPONSE, NOTIFICATION, ERROR)
+- `correlation_id`: Links request/response pairs
+- `msg_id`: Unique message identifier
+- `content_preview`: First 100 chars of message content (outgoing only)
 
 #### Workflow Transitions (`[WORKFLOW]`)
 

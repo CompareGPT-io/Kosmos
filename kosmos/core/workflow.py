@@ -289,15 +289,23 @@ class ResearchWorkflow:
             last_transition = self.transition_history[-1]
             time_in_state = (datetime.utcnow() - last_transition.timestamp).total_seconds()
 
-        # Enhanced transition logging
-        logger.debug(
-            "[WORKFLOW] Transition: %s -> %s (was in %s for %.2fs) action='%s'",
-            self.current_state.value,
-            target_state.value,
-            self.current_state.value,
-            time_in_state,
-            action
-        )
+        # Log workflow transition if enabled
+        log_transitions = False
+        try:
+            from kosmos.config import get_config
+            log_transitions = get_config().logging.log_workflow_transitions
+        except Exception:
+            pass
+
+        if log_transitions:
+            logger.debug(
+                "[WORKFLOW] Transition: %s -> %s (was in %s for %.2fs) action='%s'",
+                self.current_state.value,
+                target_state.value,
+                self.current_state.value,
+                time_in_state,
+                action
+            )
 
         # Create transition record
         transition = WorkflowTransition(
