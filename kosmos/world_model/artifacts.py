@@ -66,6 +66,9 @@ class Finding:
     hypothesis_id: Optional[str] = None  # Issue #55: Link finding to hypothesis
     refutes_hypothesis: bool = False  # Issue #55: Flag for hypothesis refutation
     confidence: float = 0.5  # Issue #55: Confidence score for the finding
+    # Issue #60: Figure tracking for research artifacts
+    figure_paths: Optional[List[str]] = None  # List of generated figure file paths
+    figure_metadata: Optional[Dict] = None  # Figure metadata: {type, caption, dpi, etc.}
 
     def to_dict(self) -> Dict:
         """Convert to dictionary for JSON serialization."""

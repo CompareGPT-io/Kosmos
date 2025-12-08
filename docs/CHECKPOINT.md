@@ -1,20 +1,55 @@
 # Kosmos Implementation Checkpoint
 
 **Date**: 2025-12-08
-**Session**: Production Readiness - Phase 1 (Data & Execution)
+**Session**: Production Readiness - Phase 2 (Output Artifacts)
 **Branch**: master
 
 ---
 
 ## Session Summary
 
-This session implemented 2 High priority paper implementation gaps as part of the production readiness roadmap:
-1. **#59 - h5ad/Parquet Data Format Support**: Scientific data formats for single-cell RNA-seq and columnar analytics
-2. **#69 - R Language Execution Support**: R code execution enabling Mendelian Randomization analyses
+This session implemented 1 High priority paper implementation gap as part of the production readiness roadmap:
+1. **#60 - Figure Generation**: Publication-quality figure generation using PublicationVisualizer
+
+Previously completed (this release cycle):
+- **#59 - h5ad/Parquet Data Format Support**: Scientific data formats for single-cell RNA-seq and columnar analytics
+- **#69 - R Language Execution Support**: R code execution enabling Mendelian Randomization analyses
 
 ---
 
 ## Work Completed This Session
+
+### Issue #60 - Figure Generation ✅
+
+**Files Created/Modified**:
+- `kosmos/execution/figure_manager.py` - **NEW** FigureManager class (200+ lines)
+- `kosmos/execution/code_generator.py` - Added figure generation to 4 code templates
+- `kosmos/world_model/artifacts.py` - Added `figure_paths` and `figure_metadata` fields to Finding
+- `tests/unit/execution/test_figure_manager.py` - **NEW** 35 unit tests
+- `tests/integration/test_figure_generation.py` - **NEW** 19 integration tests
+
+**Features**:
+- `FigureManager` class:
+  - Manages figure output paths: `artifacts/cycle_N/figures/`
+  - Maps analysis types to plot types (t-test → box_plot, correlation → scatter, etc.)
+  - Tracks figure metadata (path, type, DPI, caption)
+  - Integrates with existing `PublicationVisualizer`
+- Updated code templates with figure generation:
+  - TTestComparisonCodeTemplate → `box_plot_with_points()`
+  - CorrelationAnalysisCodeTemplate → `scatter_with_regression()`
+  - LogLogScalingCodeTemplate → `log_log_plot()` (600 DPI)
+  - MLExperimentCodeTemplate → `scatter_with_regression()`
+- Finding dataclass extended:
+  - `figure_paths: Optional[List[str]]` - List of generated figure paths
+  - `figure_metadata: Optional[Dict]` - Figure metadata (type, caption, DPI)
+- Publication-quality output:
+  - DPI: 300 (standard), 600 (panels/log-log)
+  - Arial TrueType fonts
+  - kosmos-figures color scheme (#d7191c, #0072B2, #abd9e9)
+
+**Tests**: 54 tests (35 unit + 19 integration) - All passing
+
+---
 
 ### Issue #59 - h5ad/Parquet Data Format Support ✅
 
@@ -84,23 +119,24 @@ This session implemented 2 High priority paper implementation gaps as part of th
 | #57 | Parallel Task Execution (10) | ✅ FIXED |
 | #58 | Agent Rollout Tracking | ✅ FIXED |
 
-### High Priority Issues (2/5 Complete)
+### High Priority Issues (3/5 Complete)
 | Issue | Description | Status |
 |-------|-------------|--------|
 | #59 | h5ad/Parquet Data Format Support | ✅ FIXED |
 | #69 | R Language Execution Support | ✅ FIXED |
+| #60 | Figure Generation | ✅ FIXED |
 
 ---
 
 ## Progress Summary
 
-**10/17 gaps fixed (59%)**
+**11/17 gaps fixed (65%)**
 
 | Priority | Status |
 |----------|--------|
 | BLOCKER | 3/3 Complete ✅ |
 | Critical | 5/5 Complete ✅ |
-| High | 2/5 Complete |
+| High | 3/5 Complete |
 | Medium | 0/2 Remaining |
 | Low | 0/2 Remaining |
 
@@ -111,8 +147,8 @@ This session implemented 2 High priority paper implementation gaps as part of th
 ### Phase 2: Output Artifacts
 | Order | Issue | Description |
 |-------|-------|-------------|
-| 3 | #60 | Figure Generation (matplotlib) |
-| 4 | #61 | Jupyter Notebook Generation |
+| 3 | #60 | Figure Generation (matplotlib) | ✅ Complete |
+| 4 | #61 | Jupyter Notebook Generation | **NEXT** |
 
 ### Phase 3: Validation Quality
 | Order | Issue | Description |
@@ -187,7 +223,7 @@ The approved implementation order (from plan file):
 |-------|-------|-------|-------------|--------|
 | 1 | 1 | #59 | h5ad/Parquet Data Formats | ✅ Complete |
 | 1 | 2 | #69 | R Language Support | ✅ Complete |
-| 2 | 3 | #60 | Figure Generation | Pending |
+| 2 | 3 | #60 | Figure Generation | ✅ Complete |
 | 2 | 4 | #61 | Jupyter Notebook Generation | Pending |
 | 3 | 5 | #70 | Null Model Statistical Validation | Pending |
 | 3 | 6 | #63 | Failure Mode Detection | Pending |
@@ -195,4 +231,4 @@ The approved implementation order (from plan file):
 | 5 | 8 | #64 | Multi-Run Convergence | Pending |
 | 5 | 9 | #65 | Paper Accuracy Validation | Pending |
 
-**Next step**: #60 - Figure Generation
+**Next step**: #61 - Jupyter Notebook Generation
