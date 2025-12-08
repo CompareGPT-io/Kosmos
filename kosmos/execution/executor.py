@@ -25,6 +25,14 @@ except ImportError:
     SANDBOX_AVAILABLE = False
     logger.warning("Docker sandbox not available. Install docker package for sandboxed execution.")
 
+# Optional R executor import
+try:
+    from kosmos.execution.r_executor import RExecutor, RExecutionResult, is_r_code
+    R_EXECUTOR_AVAILABLE = True
+except ImportError:
+    R_EXECUTOR_AVAILABLE = False
+    logger.debug("R executor not available")
+
 
 class ExecutionResult:
     """Result of code execution."""
@@ -126,25 +134,53 @@ class CodeExecutor:
             self.sandbox = DockerSandbox(**self.sandbox_config)
             logger.info("Docker sandbox initialized for code execution")
 
+        # Initialize R executor for R language support (Issue #69)
+        self.r_executor = None
+        if R_EXECUTOR_AVAILABLE:
+            r_timeout = self.sandbox_config.get('timeout', 300) if self.sandbox_config else 300
+            self.r_executor = RExecutor(
+                timeout=r_timeout,
+                use_docker=self.use_sandbox,
+                docker_image="kosmos-sandbox-r:latest"
+            )
+            logger.info("R executor initialized for R language support")
+
     def execute(
         self,
         code: str,
         local_vars: Optional[Dict[str, Any]] = None,
         retry_on_error: bool = False,
-        llm_client: Optional[Any] = None
+        llm_client: Optional[Any] = None,
+        language: Optional[str] = None
     ) -> ExecutionResult:
         """
-        Execute Python code and capture results with self-correcting retry (Issue #54).
+        Execute code and capture results with self-correcting retry (Issue #54).
+
+        Supports both Python and R code. Language is auto-detected if not specified.
 
         Args:
-            code: Python code to execute
-            local_vars: Optional local variables to make available
+            code: Code to execute (Python or R)
+            local_vars: Optional local variables to make available (Python only)
             retry_on_error: If True, retry on execution errors with code fixes
             llm_client: Optional LLM client for intelligent code repair
+            language: Language to use ('python', 'r'). Auto-detected if None.
 
         Returns:
             ExecutionResult with output and results
         """
+        # Auto-detect language if not specified (Issue #69)
+        if language is None:
+            if R_EXECUTOR_AVAILABLE and self.r_executor:
+                detected_lang = self.r_executor.detect_language(code)
+                language = detected_lang
+            else:
+                language = 'python'
+
+        # Route to R executor for R code
+        if language == 'r':
+            return self._execute_r(code)
+
+        # Python execution continues below
         attempt = 0
         last_error = None
         current_code = code  # Track the current version of code
@@ -230,6 +266,94 @@ class CodeExecutor:
             error=f"Failed after {self.max_retries} attempts. Last error: {last_error}",
             error_type="MaxRetriesExceeded"
         )
+
+    def _execute_r(self, code: str) -> ExecutionResult:
+        """
+        Execute R code using the R executor (Issue #69).
+
+        Args:
+            code: R code to execute
+
+        Returns:
+            ExecutionResult converted from RExecutionResult
+        """
+        if not R_EXECUTOR_AVAILABLE or self.r_executor is None:
+            return ExecutionResult(
+                success=False,
+                error="R execution not available. Install R and the r_executor module.",
+                error_type="RNotAvailable"
+            )
+
+        logger.info("Executing R code")
+        r_result = self.r_executor.execute(code, capture_results=True)
+
+        # Convert RExecutionResult to ExecutionResult
+        return ExecutionResult(
+            success=r_result.success,
+            return_value=r_result.parsed_results or r_result.return_value,
+            stdout=r_result.stdout,
+            stderr=r_result.stderr,
+            error=r_result.error,
+            error_type=r_result.error_type,
+            execution_time=r_result.execution_time
+        )
+
+    def execute_r(
+        self,
+        code: str,
+        capture_results: bool = True,
+        output_dir: Optional[str] = None
+    ) -> ExecutionResult:
+        """
+        Explicitly execute R code (Issue #69).
+
+        Use this method when you know the code is R and want to skip
+        language detection.
+
+        Args:
+            code: R code to execute
+            capture_results: If True, capture results as JSON
+            output_dir: Directory for output files
+
+        Returns:
+            ExecutionResult with R execution results
+        """
+        if not R_EXECUTOR_AVAILABLE or self.r_executor is None:
+            return ExecutionResult(
+                success=False,
+                error="R execution not available. Install R and the r_executor module.",
+                error_type="RNotAvailable"
+            )
+
+        logger.info("Explicitly executing R code")
+        r_result = self.r_executor.execute(
+            code,
+            capture_results=capture_results,
+            output_dir=output_dir
+        )
+
+        # Convert RExecutionResult to ExecutionResult
+        return ExecutionResult(
+            success=r_result.success,
+            return_value=r_result.parsed_results or r_result.return_value,
+            stdout=r_result.stdout,
+            stderr=r_result.stderr,
+            error=r_result.error,
+            error_type=r_result.error_type,
+            execution_time=r_result.execution_time
+        )
+
+    def is_r_available(self) -> bool:
+        """Check if R execution is available."""
+        if not R_EXECUTOR_AVAILABLE or self.r_executor is None:
+            return False
+        return self.r_executor.is_r_available()
+
+    def get_r_version(self) -> Optional[str]:
+        """Get R version if available."""
+        if not R_EXECUTOR_AVAILABLE or self.r_executor is None:
+            return None
+        return self.r_executor.get_r_version()
 
     def _execute_once(
         self,

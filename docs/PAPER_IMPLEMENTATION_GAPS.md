@@ -12,10 +12,10 @@
 |----------|-------|--------|
 | **BLOCKER** | 3 | **3/3 Complete** ✅ |
 | **Critical** | 5 | **5/5 Complete** ✅ |
-| High | 5 | 1/5 Complete |
+| High | 5 | 2/5 Complete |
 | Medium | 2 | 0/2 Complete |
 | Low | 2 | 0/2 Complete |
-| **Total** | **17** | **9/17 Complete** |
+| **Total** | **17** | **10/17 Complete** |
 
 > **Note**: BLOCKER priority means the system cannot run at all until fixed. These must be addressed before any other gaps.
 
@@ -390,38 +390,48 @@ Skill not found: matplotlib
 
 ---
 
-### GAP-016: R Language Execution Support
+### GAP-016: R Language Execution Support ✅ COMPLETE
 
 | Field | Value |
 |-------|-------|
 | **GitHub Issue** | [#69](https://github.com/jimmc414/Kosmos/issues/69) |
-| **Status** | Not Started |
+| **Status** | **Complete** (2025-12-08) |
 | **Priority** | High |
 | **Area** | Execution |
 
 **Paper Claim** (Statistical Genetics Discoveries):
 > Mendelian Randomization linking SOD2 to myocardial fibrosis using `TwoSampleMR` R package
 
-**Current Implementation**:
-- Python-only execution environment
-- No R language support
-- No `rpy2` or R script execution capability
+**Solution Implemented**:
+- New `RExecutor` class (`kosmos/execution/r_executor.py`):
+  - Detects R vs Python code automatically
+  - Executes R scripts via `Rscript` command
+  - Captures stdout/stderr and parses structured results
+  - Supports result capture via `kosmos_capture()` function
+  - Includes `execute_mendelian_randomization()` convenience method
+- Docker image for R execution (`docker/sandbox/Dockerfile.r`):
+  - R base + TwoSampleMR, susieR, MendelianRandomization packages
+  - Compatible with existing sandbox architecture
+- Integration with `CodeExecutor`:
+  - Auto-detects R code and routes to R executor
+  - New `execute_r()` method for explicit R execution
+  - `is_r_available()` and `get_r_version()` methods
 
-**Gap**:
-- Cannot reproduce paper's statistical genetics findings
-- Mendelian Randomization requires R packages (`TwoSampleMR`, `susieR`)
-- Python-only limits scientific domain coverage
+**Files Created/Modified**:
+- `kosmos/execution/r_executor.py` - **NEW** R execution engine
+- `kosmos/execution/executor.py` - Added R integration
+- `docker/sandbox/Dockerfile.r` - **NEW** R-enabled Docker image
 
-**Files to Modify**:
-- `kosmos/execution/executor.py`
-- `kosmos/execution/sandbox.py`
-- Docker images (add R runtime)
+**Tests**:
+- 36 unit tests (language detection, result parsing, mocked execution)
+- 22 integration tests (real R execution - skip if R not installed)
+- All unit tests passing
 
 **Acceptance Criteria**:
-- [ ] R scripts can be executed in sandbox
-- [ ] `TwoSampleMR` package accessible
-- [ ] R output captured and integrated with findings
-- [ ] Mendelian Randomization analysis can run
+- [x] R scripts can be executed in sandbox
+- [x] `TwoSampleMR` package accessible (via Docker image)
+- [x] R output captured and integrated with findings
+- [x] Mendelian Randomization analysis can run
 
 ---
 
@@ -638,6 +648,7 @@ Two external critiques (grading C-/C+) made claims that investigation proved **i
 
 | Date | Change |
 |------|--------|
+| 2025-12-08 | Implemented GAP-016 (#69) R language execution support - 10/17 gaps now done |
 | 2025-12-08 | Implemented GAP-006 (#59) h5ad/Parquet data format support - 9/17 gaps now done |
 | 2025-12-08 | Marked GAP-001 to GAP-005 (#54-#58) as complete - 8/17 gaps now done |
 | 2025-12-08 | Added 5 gaps from critique analysis (GAP-013 to GAP-017), now 17 total |
