@@ -62,6 +62,8 @@ class NotebookMetadata:
     has_outputs: bool = False
     timestamp: Optional[str] = None
     hypothesis: Optional[str] = None
+    # Issue #62: Cell-to-line mapping for provenance
+    cell_line_mappings: Optional[List[Dict]] = None  # [{cell_index, start_line, end_line, code_hash}]
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
@@ -207,6 +209,9 @@ class NotebookGenerator:
             markdown_count = 0
             code_cell_count = 0
             line_count = 0
+            # Issue #62: Track cell-to-line mappings for provenance
+            cell_line_mappings = []
+            cumulative_line = 1  # 1-based line numbering
 
             # Add header markdown cell
             header_content = self._create_header(
@@ -233,8 +238,24 @@ class NotebookGenerator:
                     cell.outputs = self._convert_execution_result(execution_result)
 
                 nb.cells.append(cell)
+                cell_lines = len(cell_code.splitlines())
+
+                # Issue #62: Build cell-to-line mapping for provenance
+                import hashlib
+                code_hash = hashlib.sha256(cell_code.encode('utf-8')).hexdigest()[:16]
+                cell_line_mappings.append({
+                    'cell_index': code_cell_count,  # 0-based index within code cells
+                    'notebook_cell_index': len(nb.cells) - 1,  # Actual cell index in notebook
+                    'start_line': cumulative_line,
+                    'end_line': cumulative_line + cell_lines - 1,
+                    'line_count': cell_lines,
+                    'cell_type': 'code',
+                    'code_hash': code_hash,
+                })
+
                 code_cell_count += 1
-                line_count += len(cell_code.splitlines())
+                line_count += cell_lines
+                cumulative_line += cell_lines
 
             # Add figure references as markdown cells
             if figure_paths:
@@ -270,7 +291,9 @@ class NotebookGenerator:
                 has_figures=bool(figure_paths),
                 has_outputs=execution_result is not None,
                 timestamp=datetime.now().isoformat(),
-                hypothesis=hypothesis
+                hypothesis=hypothesis,
+                # Issue #62: Include cell-to-line mappings for provenance
+                cell_line_mappings=cell_line_mappings if cell_line_mappings else None,
             )
 
             self.generated_notebooks.append(metadata)

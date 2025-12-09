@@ -13,9 +13,9 @@
 | **BLOCKER** | 3 | **3/3 Complete** ✅ |
 | **Critical** | 5 | **5/5 Complete** ✅ |
 | High | 5 | **5/5 Complete** ✅ |
-| Medium | 2 | **1/2 Complete** |
+| Medium | 2 | **2/2 Complete** ✅ |
 | Low | 2 | 0/2 Complete |
-| **Total** | **17** | **14/17 Complete** |
+| **Total** | **17** | **15/17 Complete** |
 
 > **Note**: BLOCKER priority means the system cannot run at all until fixed. These must be addressed before any other gaps.
 
@@ -502,35 +502,45 @@ Skill not found: matplotlib
 
 ## Medium Priority Gaps
 
-### GAP-009: Code Line Provenance
+### GAP-009: Code Line Provenance ✅ COMPLETE
 
 | Field | Value |
 |-------|-------|
 | **GitHub Issue** | [#62](https://github.com/jimmc414/Kosmos/issues/62) |
-| **Status** | Not Started |
+| **Status** | **Complete** (2025-12-08) |
 | **Priority** | Medium |
 | **Area** | Traceability |
 
 **Paper Claim** (Section 5):
 > "Code Citation: Hyperlink to the exact Jupyter notebook and line of code that produced the claim"
 
-**Current Implementation**:
-- DOI support for literature citations ✓
-- No code line → finding mapping
-- Phase 4 doc says "PROV-O provenance tracking" is future work
+**Solution Implemented**:
+- `CodeProvenance` dataclass for linking findings to source code
+  - `notebook_path`: Path to Jupyter notebook
+  - `cell_index`: 0-based cell index in notebook
+  - `start_line`/`end_line`: Line range within cell
+  - `code_snippet`: Relevant code (max 500 chars)
+  - `to_hyperlink()`: Generates `notebook.ipynb#cell=N&line=M` format
+- `CellLineMapping` dataclass for cell-to-line tracking
+- `NotebookMetadata` enhanced with `cell_line_mappings` field
+- Report generation updated to include clickable hyperlinks
+- 47 unit tests + 24 integration tests
 
-**Gap**:
-- Cannot audit which code line produced which finding
-- No hyperlinks to source code in reports
+**Files Created**:
+- `kosmos/execution/provenance.py` - CodeProvenance, CellLineMapping classes
+- `tests/unit/execution/test_provenance.py` - 47 unit tests
+- `tests/integration/execution/test_code_provenance_pipeline.py` - 24 integration tests
 
-**Files to Modify**:
-- `kosmos/world_model/artifacts.py`
-- `kosmos/execution/executor.py`
+**Files Modified**:
+- `kosmos/execution/__init__.py` - Exported provenance classes
+- `kosmos/world_model/artifacts.py` - Added `code_provenance` field to Finding
+- `kosmos/execution/notebook_generator.py` - Added `cell_line_mappings` to NotebookMetadata
+- `kosmos/workflow/research_loop.py` - Updated report generation with hyperlinks
 
 **Acceptance Criteria**:
-- [ ] Findings include `source_file` and `line_number` fields
-- [ ] Report generator creates hyperlinks to code
-- [ ] Provenance chain: finding → code → hypothesis
+- [x] Findings include `code_provenance` field with notebook_path, cell_index, line numbers
+- [x] Report generator creates hyperlinks to code (`notebook.ipynb#cell=N&line=M`)
+- [x] Provenance chain: finding → code → hypothesis via hypothesis_id field
 
 ---
 

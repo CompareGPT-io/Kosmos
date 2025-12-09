@@ -350,8 +350,16 @@ class ResearchWorkflow:
                         report += f"- {key}: {value}\n"
                 report += "\n"
 
-            # Evidence
-            if finding.notebook_path:
+            # Evidence with code provenance (Issue #62)
+            if finding.code_provenance:
+                prov = finding.code_provenance
+                hyperlink = f"{prov['notebook_path']}#cell={prov['cell_index']}&line={prov['start_line']}"
+                filename = prov['notebook_path'].split('/')[-1]
+                report += f"**Code Citation**: [{filename}]({hyperlink})"
+                if prov.get('start_line') and prov.get('end_line'):
+                    report += f" (lines {prov['start_line']}-{prov['end_line']})"
+                report += "\n\n"
+            elif finding.notebook_path:
                 report += f"**Evidence**: `{finding.notebook_path}`\n\n"
 
             # Quality score

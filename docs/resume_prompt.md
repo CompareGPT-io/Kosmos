@@ -2,7 +2,7 @@
 
 ## Context
 
-You are resuming work on the Kosmos project after a context compaction. The previous sessions implemented **14 paper implementation gaps** (3 BLOCKER + 5 Critical + 5 High + 1 Medium).
+You are resuming work on the Kosmos project after a context compaction. The previous sessions implemented **15 paper implementation gaps** (3 BLOCKER + 5 Critical + 5 High + 2 Medium).
 
 ## What Was Done
 
@@ -24,26 +24,28 @@ You are resuming work on the Kosmos project after a context compaction. The prev
 | #61 | Jupyter Notebook Generation | `NotebookGenerator` class + nbformat integration |
 | #70 | Null Model Statistical Validation | `NullModelValidator` class + ScholarEval integration |
 | #63 | Failure Mode Detection | `FailureDetector` class (over-interp, invented metrics, rabbit hole) |
+| #62 | Code Line Provenance | `CodeProvenance` class + hyperlinks to notebook cells |
 
 ### Key Files Created/Modified (Recent)
 
 | File | Changes |
 |------|---------|
-| `kosmos/validation/failure_detector.py` | **NEW** - FailureDetector, FailureDetectionResult, FailureModeScore (350+ lines) |
-| `kosmos/validation/__init__.py` | Exported failure detector classes |
-| `kosmos/world_model/artifacts.py` | Added failure_detection_result field to Finding |
-| `tests/unit/validation/test_failure_detector.py` | **NEW** - 60 unit tests |
-| `tests/integration/validation/test_failure_detection_pipeline.py` | **NEW** - 22 integration tests |
+| `kosmos/execution/provenance.py` | **NEW** - CodeProvenance, CellLineMapping (~280 lines) |
+| `kosmos/execution/__init__.py` | Exported provenance classes |
+| `kosmos/world_model/artifacts.py` | Added code_provenance field to Finding |
+| `kosmos/execution/notebook_generator.py` | Added cell_line_mappings to NotebookMetadata |
+| `kosmos/workflow/research_loop.py` | Updated generate_report() with hyperlinks |
+| `tests/unit/execution/test_provenance.py` | **NEW** - 47 unit tests |
+| `tests/integration/execution/test_code_provenance_pipeline.py` | **NEW** - 24 integration tests |
 
-## Remaining Work (3 gaps)
+## Remaining Work (2 gaps)
 
 ### Implementation Order
 
 | Phase | Order | Issue | Description | Status |
 |-------|-------|-------|-------------|--------|
-| 3 | 6 | #63 | Failure Mode Detection | ✅ Complete |
-| 4 | 7 | #62 | Code Line Provenance | **Next** |
-| 5 | 8 | #64 | Multi-Run Convergence | Pending |
+| 4 | 7 | #62 | Code Line Provenance | ✅ Complete |
+| 5 | 8 | #64 | Multi-Run Convergence | **Next** |
 | 5 | 9 | #65 | Paper Accuracy Validation | Pending |
 
 ### Testing Requirements
@@ -55,68 +57,61 @@ You are resuming work on the Kosmos project after a context compaction. The prev
 ## Key Documentation
 
 - `docs/CHECKPOINT.md` - Full session summary
-- `docs/PAPER_IMPLEMENTATION_GAPS.md` - 17 tracked gaps (14 complete)
-- `/home/jim/.claude/plans/groovy-questing-allen.md` - Failure mode detection plan
+- `docs/PAPER_IMPLEMENTATION_GAPS.md` - 17 tracked gaps (15 complete)
+- `/home/jim/.claude/plans/groovy-questing-allen.md` - Code line provenance plan
 - GitHub Issues #54-#70 - Detailed tracking
 
 ## Quick Verification Commands
 
 ```bash
-# Verify failure detection
+# Verify code provenance
 python -c "
-from kosmos.validation import FailureDetector, FailureDetectionResult, FailureModeScore
+from kosmos.execution import CodeProvenance, CellLineMapping, create_provenance_from_notebook
+from kosmos.world_model.artifacts import Finding
 
-# Test FailureDetector
-detector = FailureDetector()
-finding = {
-    'finding_id': 'test_001',
-    'summary': 'Genetic analysis shows association with cancer susceptibility',
-    'statistics': {
-        'p_value': 0.001,
-        'effect_size': 0.7,
-        'sample_size': 150,
-    },
-    'interpretation': 'Results suggest genetic factors contribute to cancer risk.',
-}
-context = {
-    'research_question': 'What genetic factors are associated with cancer susceptibility?',
-}
-result = detector.detect_failures(finding, context)
-print(f'Passes validation: {result.passes_validation}')
-print(f'Over-interpretation score: {result.over_interpretation.score:.3f}')
-print(f'Invented metrics score: {result.invented_metrics.score:.3f}')
-print(f'Rabbit hole score: {result.rabbit_hole.score:.3f}')
+# Test CodeProvenance
+provenance = CodeProvenance(
+    notebook_path='artifacts/cycle_1/notebooks/task_5_correlation.ipynb',
+    cell_index=3,
+    start_line=1,
+    end_line=15,
+    code_snippet='import pandas as pd\ndf = pd.read_csv(\"data.csv\")',
+    hypothesis_id='hyp_001',
+)
+print(f'Hyperlink: {provenance.to_hyperlink()}')
+print(f'Citation: {provenance.get_citation_string()}')
+print(f'Markdown: {provenance.to_markdown_link()}')
 print('All imports successful')
 "
 
 # Run tests
-python -m pytest tests/unit/validation/test_failure_detector.py -v --tb=short
-python -m pytest tests/integration/validation/test_failure_detection_pipeline.py -v --tb=short
+python -m pytest tests/unit/execution/test_provenance.py -v --tb=short
+python -m pytest tests/integration/execution/test_code_provenance_pipeline.py -v --tb=short
 ```
 
 ## Resume Command
 
 Start by reading the checkpoint:
 ```
-Read docs/CHECKPOINT.md and docs/PAPER_IMPLEMENTATION_GAPS.md, then continue with the next item: #62 - Code Line Provenance
+Read docs/CHECKPOINT.md and docs/PAPER_IMPLEMENTATION_GAPS.md, then continue with the next item: #64 - Multi-Run Convergence Framework
 ```
 
 ## Progress Summary
 
-**14/17 gaps fixed (82% complete)**
+**15/17 gaps fixed (88% complete)**
 
 | Priority | Status |
 |----------|--------|
 | BLOCKER | 3/3 complete ✅ |
 | Critical | 5/5 complete ✅ |
 | High | 5/5 complete ✅ |
-| Medium | 1/2 complete |
+| Medium | 2/2 complete ✅ |
 | Low | 0/2 remaining |
 
 ## Next Step
 
-Continue with **#62 - Code Line Provenance**:
-- Add `source_file` and `line_number` fields to findings
-- Enable hyperlinks from reports to source code
-- Create provenance chain: finding → code → hypothesis
-- Track which code produced which findings
+Continue with **#64 - Multi-Run Convergence Framework**:
+- Implement `EnsembleRunner.run(n_runs, research_objective)` function
+- Calculate convergence metrics across runs
+- Report showing findings that appeared in N/M runs
+- Non-deterministic validation through replication

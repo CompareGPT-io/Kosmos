@@ -84,6 +84,15 @@ from .executor import (
     execute_protocol_code,
 )
 
+# Issue #62: Code line provenance
+from .provenance import (
+    CodeProvenance,
+    CellLineMapping,
+    create_provenance_from_notebook,
+    build_cell_line_mappings,
+    get_cell_for_line,
+)
+
 # Re-export commonly used items at package level
 __all__ = [
     # Production executor (recommended)
@@ -120,4 +129,11 @@ __all__ = [
     "CodeValidator",
     "RetryStrategy",
     "execute_protocol_code",
+
+    # Issue #62: Code line provenance
+    "CodeProvenance",
+    "CellLineMapping",
+    "create_provenance_from_notebook",
+    "build_cell_line_mappings",
+    "get_cell_for_line",
 ]

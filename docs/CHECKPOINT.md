@@ -1,7 +1,7 @@
 # Kosmos Implementation Checkpoint
 
 **Date**: 2025-12-08
-**Session**: Production Readiness - Phase 3 (Validation Quality)
+**Session**: Production Readiness - Phase 4 (Traceability)
 **Branch**: master
 
 ---
@@ -9,9 +9,10 @@
 ## Session Summary
 
 This session implemented 1 Medium priority paper implementation gap as part of the production readiness roadmap:
-1. **#63 - Failure Mode Detection**: Detection for over-interpretation, invented metrics, and rabbit holes
+1. **#62 - Code Line Provenance**: Hyperlinks from findings to exact Jupyter notebook cells and line numbers
 
 Previously completed (this release cycle):
+- **#63 - Failure Mode Detection**: Detection for over-interpretation, invented metrics, and rabbit holes
 - **#70 - Null Model Statistical Validation**: Permutation testing to validate findings against null models
 - **#59 - h5ad/Parquet Data Format Support**: Scientific data formats for single-cell RNA-seq and columnar analytics
 - **#69 - R Language Execution Support**: R code execution enabling Mendelian Randomization analyses
@@ -22,72 +23,37 @@ Previously completed (this release cycle):
 
 ## Work Completed This Session
 
-### Issue #63 - Failure Mode Detection ✅
+### Issue #62 - Code Line Provenance ✅
 
-**Files Created/Modified**:
-- `kosmos/validation/failure_detector.py` - **NEW** FailureDetector, FailureDetectionResult, FailureModeScore classes (350+ lines)
-- `kosmos/validation/__init__.py` - Exported FailureDetector, FailureDetectionResult, FailureModeScore
-- `kosmos/world_model/artifacts.py` - Added `failure_detection_result` field to Finding
-- `tests/unit/validation/test_failure_detector.py` - **NEW** 60 unit tests
-- `tests/integration/validation/test_failure_detection_pipeline.py` - **NEW** 22 integration tests
+**Files Created**:
+- `kosmos/execution/provenance.py` - **NEW** CodeProvenance, CellLineMapping dataclasses (~280 lines)
+- `tests/unit/execution/test_provenance.py` - **NEW** 47 unit tests
+- `tests/integration/execution/test_code_provenance_pipeline.py` - **NEW** 24 integration tests
 
-**Features**:
-- `FailureDetector` class with three detection methods:
-  - **Over-interpretation Detection**: Compares claim strength (strong/hedged word analysis) vs statistical strength (p-value, effect size, sample size weighted scoring)
-  - **Invented Metrics Detection**: Validates metrics against 60+ standard statistical terms, dataset schema, and finding statistics keys
-  - **Rabbit Hole Detection**: Keyword similarity between finding and research question + hypothesis generation depth penalty
-- `FailureDetectionResult` dataclass:
-  - Scores for each failure mode (0-1 scale)
-  - Overall weighted score (0.4 over-interp + 0.3 invented + 0.3 rabbit hole)
-  - passes_validation flag, warnings list, recommendations list
-  - has_failures property, get_summary() method
-  - to_dict()/from_dict() serialization
-- `FailureModeScore` dataclass:
-  - Individual detection result with score, detected flag, confidence
-  - Evidence list documenting why detection triggered
-  - Recommendations for fixing the issue
-- Configurable thresholds:
-  - over_interpretation_threshold: 0.6 (default)
-  - invented_metrics_threshold: 0.5 (default)
-  - rabbit_hole_threshold: 0.7 (default)
-  - similarity_threshold: 0.3 (minimum relevance to RQ)
-- Batch processing: batch_detect() and get_failure_statistics() methods
-- Finding dataclass extended:
-  - `failure_detection_result: Optional[Dict]` - Failure mode detection results
-
-**Tests**: 82 tests (60 unit + 22 integration) - All passing
-
----
-
-### Issue #70 - Null Model Statistical Validation ✅
-
-**Files Created/Modified**:
-- `kosmos/validation/null_model.py` - **NEW** NullModelValidator and NullModelResult classes (430+ lines)
-- `kosmos/validation/scholar_eval.py` - Integrated null model validation into evaluate_finding()
-- `kosmos/validation/__init__.py` - Exported NullModelValidator, NullModelResult
-- `kosmos/world_model/artifacts.py` - Added `null_model_result` field to Finding
-- `tests/unit/validation/test_null_model.py` - **NEW** 45 unit tests
-- `tests/integration/validation/test_null_validation.py` - **NEW** 19 integration tests
+**Files Modified**:
+- `kosmos/execution/__init__.py` - Exported CodeProvenance, CellLineMapping, helper functions
+- `kosmos/world_model/artifacts.py` - Added `code_provenance` field to Finding
+- `kosmos/execution/notebook_generator.py` - Added `cell_line_mappings` to NotebookMetadata
+- `kosmos/workflow/research_loop.py` - Updated `generate_report()` with hyperlinks
+- `kosmos/world_model/artifacts.py` - Updated `generate_cycle_summary()` with hyperlinks
 
 **Features**:
-- `NullModelValidator` class:
-  - Permutation testing with configurable iterations (default: 1000)
-  - 4 shuffle strategies: column, row, label, residual
-  - Parametric null distributions for t, F, chi² tests
-  - Empirical p-value calculation from permutation distribution
-  - Detection of findings that persist in noise (potential false positives)
-- `NullModelResult` dataclass:
-  - Stores observed statistic, null distribution (percentiles), permutation p-value
-  - Tracks validation outcome (passes_null_test, persists_in_noise)
-  - is_valid property combining both criteria
-- ScholarEval integration:
-  - Runs null model validation automatically for findings with statistics
-  - Penalizes findings that persist in noise (50% score reduction)
-  - Added `null_model_result` and `statistical_validity` fields to ScholarEvalScore
-- Finding dataclass extended:
-  - `null_model_result: Optional[Dict]` - Null model validation results
+- `CodeProvenance` dataclass for linking findings to source code:
+  - `notebook_path`: Path to Jupyter notebook
+  - `cell_index`: 0-based cell index in notebook
+  - `start_line`/`end_line`: Line range within cell
+  - `code_snippet`: Relevant code (max 500 chars, auto-truncated)
+  - `hypothesis_id`: Link to hypothesis being tested
+  - `to_hyperlink()`: Generates `notebook.ipynb#cell=N&line=M` format
+  - `to_markdown_link()`: Generates `[filename](hyperlink)` format
+  - `get_citation_string()`: Human-readable citation
+- `CellLineMapping` dataclass for tracking cell-to-line mappings
+- `NotebookMetadata` enhanced with `cell_line_mappings` field
+- `NotebookGenerator.create_notebook()` now tracks line numbers per cell
+- Report generation includes clickable hyperlinks to code
+- Helper functions: `create_provenance_from_notebook()`, `build_cell_line_mappings()`, `get_cell_for_line()`
 
-**Tests**: 64 tests (45 unit + 19 integration) - All passing
+**Tests**: 71 tests (47 unit + 24 integration) - All passing
 
 ---
 
@@ -118,39 +84,34 @@ Previously completed (this release cycle):
 | #61 | Jupyter Notebook Generation | ✅ FIXED |
 | #70 | Null Model Statistical Validation | ✅ FIXED |
 
-### Medium Priority Issues (1/2 Complete)
+### Medium Priority Issues (2/2 Complete)
 | Issue | Description | Status |
 |-------|-------------|--------|
 | #63 | Failure Mode Detection | ✅ FIXED |
-| #62 | Code Line Provenance | Pending |
+| #62 | Code Line Provenance | ✅ FIXED |
 
 ---
 
 ## Progress Summary
 
-**14/17 gaps fixed (82%)**
+**15/17 gaps fixed (88%)**
 
 | Priority | Status |
 |----------|--------|
 | BLOCKER | 3/3 Complete ✅ |
 | Critical | 5/5 Complete ✅ |
 | High | 5/5 Complete ✅ |
-| Medium | 1/2 Complete |
+| Medium | 2/2 Complete ✅ |
 | Low | 0/2 Remaining |
 
 ---
 
 ## Remaining Work (Prioritized Order)
 
-### Phase 4: Traceability
-| Order | Issue | Description |
-|-------|-------|-------------|
-| 7 | #62 | Code Line Provenance | **NEXT** |
-
 ### Phase 5: System Validation
 | Order | Issue | Description |
 |-------|-------|-------------|
-| 8 | #64 | Multi-Run Convergence Framework |
+| 8 | #64 | Multi-Run Convergence Framework | **NEXT** |
 | 9 | #65 | Paper Accuracy Validation |
 
 ---
@@ -158,46 +119,49 @@ Previously completed (this release cycle):
 ## Quick Verification Commands
 
 ```bash
-# Verify failure detection
+# Verify code provenance
 python -c "
-from kosmos.validation import FailureDetector, FailureDetectionResult, FailureModeScore
+from kosmos.execution import CodeProvenance, CellLineMapping, create_provenance_from_notebook
+from kosmos.world_model.artifacts import Finding
 
-# Test FailureDetector
-detector = FailureDetector()
-finding = {
-    'finding_id': 'test_001',
-    'summary': 'Genetic analysis shows association with cancer susceptibility',
-    'statistics': {
-        'p_value': 0.001,
-        'effect_size': 0.7,
-        'sample_size': 150,
-    },
-    'interpretation': 'Results suggest genetic factors contribute to cancer risk.',
-}
-context = {
-    'research_question': 'What genetic factors are associated with cancer susceptibility?',
-}
-result = detector.detect_failures(finding, context)
-print(f'Overall score: {result.overall_score:.3f}')
-print(f'Passes validation: {result.passes_validation}')
-print(f'Over-interpretation: {result.over_interpretation.score:.3f} (detected: {result.over_interpretation.detected})')
-print(f'Invented metrics: {result.invented_metrics.score:.3f} (detected: {result.invented_metrics.detected})')
-print(f'Rabbit hole: {result.rabbit_hole.score:.3f} (detected: {result.rabbit_hole.detected})')
+# Test CodeProvenance
+provenance = CodeProvenance(
+    notebook_path='artifacts/cycle_1/notebooks/task_5_correlation.ipynb',
+    cell_index=3,
+    start_line=1,
+    end_line=15,
+    code_snippet='import pandas as pd\ndf = pd.read_csv(\"data.csv\")',
+    hypothesis_id='hyp_001',
+)
+print(f'Hyperlink: {provenance.to_hyperlink()}')
+print(f'Citation: {provenance.get_citation_string()}')
+print(f'Markdown: {provenance.to_markdown_link()}')
+
+# Test Finding with provenance
+finding = Finding(
+    finding_id='f001',
+    cycle=1,
+    task_id=5,
+    summary='Test finding',
+    statistics={'p_value': 0.01},
+    code_provenance=provenance.to_dict(),
+)
+print(f'Finding has provenance: {finding.code_provenance is not None}')
 print('All imports successful')
 "
 
 # Run tests
-python -m pytest tests/unit/validation/test_failure_detector.py -v --tb=short
-python -m pytest tests/integration/validation/test_failure_detection_pipeline.py -v --tb=short
+python -m pytest tests/unit/execution/test_provenance.py -v --tb=short
+python -m pytest tests/integration/execution/test_code_provenance_pipeline.py -v --tb=short
 ```
 
 ---
 
 ## Key Documentation
 
-- `docs/PAPER_IMPLEMENTATION_GAPS.md` - 17 tracked gaps (14 complete)
+- `docs/PAPER_IMPLEMENTATION_GAPS.md` - 17 tracked gaps (15 complete)
 - `docs/resume_prompt.md` - Post-compaction resume instructions
-- `/home/jim/.claude/plans/groovy-questing-allen.md` - Failure mode detection plan
+- `/home/jim/.claude/plans/groovy-questing-allen.md` - Code line provenance plan
 - GitHub Issues #54-#70 - Detailed tracking
 
 ---
@@ -214,8 +178,8 @@ The approved implementation order (from plan file):
 | 2 | 4 | #61 | Jupyter Notebook Generation | ✅ Complete |
 | 3 | 5 | #70 | Null Model Statistical Validation | ✅ Complete |
 | 3 | 6 | #63 | Failure Mode Detection | ✅ Complete |
-| 4 | 7 | #62 | Code Line Provenance | **NEXT** |
-| 5 | 8 | #64 | Multi-Run Convergence | Pending |
+| 4 | 7 | #62 | Code Line Provenance | ✅ Complete |
+| 5 | 8 | #64 | Multi-Run Convergence | **NEXT** |
 | 5 | 9 | #65 | Paper Accuracy Validation | Pending |
 
-**Next step**: #62 - Code Line Provenance
+**Next step**: #64 - Multi-Run Convergence Framework

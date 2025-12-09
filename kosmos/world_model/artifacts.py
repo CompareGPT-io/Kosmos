@@ -75,6 +75,8 @@ class Finding:
     null_model_result: Optional[Dict] = None  # Null model validation: {p_value, persists_in_noise, etc.}
     # Issue #63: Failure mode detection
     failure_detection_result: Optional[Dict] = None  # Failure modes: {over_interpretation, invented_metrics, rabbit_hole}
+    # Issue #62: Code line provenance
+    code_provenance: Optional[Dict] = None  # CodeProvenance: {notebook_path, cell_index, start_line, end_line, code_snippet}
 
     def to_dict(self) -> Dict:
         """Convert to dictionary for JSON serialization."""
@@ -465,8 +467,16 @@ class ArtifactStateManager:
                         summary += f"- {key}: {value}\n"
                 summary += "\n"
 
-            # Evidence
-            if finding.notebook_path:
+            # Evidence with code provenance (Issue #62)
+            if finding.code_provenance:
+                prov = finding.code_provenance
+                hyperlink = f"{prov['notebook_path']}#cell={prov['cell_index']}&line={prov['start_line']}"
+                filename = prov['notebook_path'].split('/')[-1]
+                summary += f"**Code Citation**: [{filename}]({hyperlink})"
+                if prov.get('start_line') and prov.get('end_line'):
+                    summary += f" (lines {prov['start_line']}-{prov['end_line']})"
+                summary += "\n\n"
+            elif finding.notebook_path:
                 summary += f"**Evidence**: `{finding.notebook_path}`\n\n"
 
         # Save summary to file

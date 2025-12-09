@@ -285,15 +285,16 @@ kosmos/
 | [#60](https://github.com/jimmc414/Kosmos/issues/60) | Figure generation | ✅ Fixed |
 | [#61](https://github.com/jimmc414/Kosmos/issues/61) | Jupyter notebook generation | ✅ Fixed |
 | [#70](https://github.com/jimmc414/Kosmos/issues/70) | Null model statistical validation | ✅ Fixed |
+| [#63](https://github.com/jimmc414/Kosmos/issues/63) | Failure mode detection | ✅ Fixed |
+| [#62](https://github.com/jimmc414/Kosmos/issues/62) | Code line provenance | ✅ Fixed |
 
 ### Remaining Gaps
 
 | Priority | Count | Status |
 |----------|-------|--------|
-| Medium | 2 | #62, #63 |
 | Low | 2 | #64, #65 |
 
-Full tracking: [PAPER_IMPLEMENTATION_GAPS.md](docs/PAPER_IMPLEMENTATION_GAPS.md) (13/17 gaps complete)
+Full tracking: [PAPER_IMPLEMENTATION_GAPS.md](docs/PAPER_IMPLEMENTATION_GAPS.md) (15/17 gaps complete)
 
 ### Test Coverage
 
@@ -384,4 +385,4 @@ MIT License
 
 ---
 
-**Version**: 0.2.0-alpha | **Tests**: 2584 passing | **Last Updated**: 2025-12-08
+**Version**: 0.2.0-alpha | **Tests**: 3436 passing | **Last Updated**: 2025-12-08
