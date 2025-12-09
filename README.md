@@ -5,7 +5,7 @@ An autonomous AI scientist for scientific discovery, implementing the architectu
 [![Version](https://img.shields.io/badge/version-0.2.0--alpha-blue.svg)](https://github.com/jimmc414/Kosmos)
 [![Status](https://img.shields.io/badge/status-alpha-orange.svg)](https://github.com/jimmc414/Kosmos)
 [![Implementation](https://img.shields.io/badge/core-90%25%20complete-green.svg)](120525_implementation_gaps_v2.md)
-[![Tests](https://img.shields.io/badge/tests-2204%20passing-green.svg)](120625_code_review.md)
+[![Tests](https://img.shields.io/badge/tests-2520%20passing-green.svg)](120625_code_review.md)
 
 ## What is Kosmos?
 
@@ -283,24 +283,25 @@ kosmos/
 | [#59](https://github.com/jimmc414/Kosmos/issues/59) | h5ad/Parquet data formats | ✅ Fixed |
 | [#69](https://github.com/jimmc414/Kosmos/issues/69) | R language execution | ✅ Fixed |
 | [#60](https://github.com/jimmc414/Kosmos/issues/60) | Figure generation | ✅ Fixed |
+| [#61](https://github.com/jimmc414/Kosmos/issues/61) | Jupyter notebook generation | ✅ Fixed |
 
 ### Remaining Gaps
 
 | Priority | Count | Status |
 |----------|-------|--------|
-| High | 2 | #61, #70 |
+| High | 1 | #70 |
 | Medium | 2 | #62, #63 |
 | Low | 2 | #64, #65 |
 
-Full tracking: [PAPER_IMPLEMENTATION_GAPS.md](docs/PAPER_IMPLEMENTATION_GAPS.md) (11/17 gaps complete)
+Full tracking: [PAPER_IMPLEMENTATION_GAPS.md](docs/PAPER_IMPLEMENTATION_GAPS.md) (12/17 gaps complete)
 
 ### Test Coverage
 
 | Category | Count | Status |
 |----------|-------|--------|
-| Unit tests | 1922 | Passing |
-| Integration tests | 282 | Passing |
-| E2E tests | 39 | 32 pass, 7 skip (environment-dependent) |
+| Unit tests | 2050 | Passing |
+| Integration tests | 332 | Passing |
+| E2E tests | 138 | Most pass, some skip (environment-dependent) |
 
 E2E tests skip based on environment:
 - Neo4j not configured (`@pytest.mark.requires_neo4j`)
@@ -383,4 +384,4 @@ MIT License
 
 ---
 
-**Version**: 0.2.0-alpha | **Tests**: 2204 passing | **Last Updated**: 2025-12-08
+**Version**: 0.2.0-alpha | **Tests**: 2520 passing | **Last Updated**: 2025-12-08
