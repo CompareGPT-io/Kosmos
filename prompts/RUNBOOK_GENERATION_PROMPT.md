@@ -78,7 +78,7 @@ kosmos/
 
 ### Current Known Issues
 
-> **Note**: Issues #1 and #2 below have been **RESOLVED**. See `docs/PAPER_IMPLEMENTATION_GAPS.md` for full status.
+> **Note**: Issues #1 and #2 below have been **RESOLVED**. See `archive/PAPER_IMPLEMENTATION_GAPS.md` for full status.
 
 1. ~~**CLI Hangs**~~: ✅ FIXED (#66) - Full async refactor implemented
 2. ~~**SkillLoader Broken**~~: ✅ FIXED (#67) - Domain mapping and skill discovery working
@@ -215,4 +215,4 @@ The runbook is complete when:
 
 ## Output Destination
 
-Save the generated runbook to: `docs/OPERATIONAL_RUNBOOK.md`
+Save the generated runbook to: `archive/OPERATIONAL_RUNBOOK.md`
