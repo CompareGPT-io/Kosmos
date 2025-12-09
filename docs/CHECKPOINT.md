@@ -37,7 +37,7 @@ Completed Issue #65 - Paper Accuracy Validation, the final gap in the paper impl
 |------|---------|
 | `kosmos/world_model/artifacts.py` | Added expert_validated, validation_accurate, validation_timestamp, validation_notes fields |
 | `kosmos/validation/__init__.py` | Added exports for AccuracyTracker, BenchmarkDataset, etc. |
-| `docs/PAPER_IMPLEMENTATION_GAPS.md` | Updated to 17/17 complete |
+| `archive/PAPER_IMPLEMENTATION_GAPS.md` | Updated to 17/17 complete (archived) |
 | `README.md` | Updated test count to 3621, marked all gaps complete |
 
 ---

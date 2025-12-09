@@ -4,8 +4,8 @@ An autonomous AI scientist for scientific discovery, implementing the architectu
 
 [![Version](https://img.shields.io/badge/version-0.2.0--alpha-blue.svg)](https://github.com/jimmc414/Kosmos)
 [![Status](https://img.shields.io/badge/status-alpha-orange.svg)](https://github.com/jimmc414/Kosmos)
-[![Implementation](https://img.shields.io/badge/core-90%25%20complete-green.svg)](120525_implementation_gaps_v2.md)
-[![Tests](https://img.shields.io/badge/tests-3704%20passing-green.svg)](120625_code_review.md)
+[![Implementation](https://img.shields.io/badge/paper_gaps-17%2F17%20complete-green.svg)](archive/PAPER_IMPLEMENTATION_GAPS.md)
+[![Tests](https://img.shields.io/badge/tests-3704%20passing-green.svg)](archive/120625_code_review.md)
 
 ## What is Kosmos?
 
@@ -275,9 +275,9 @@ kosmos/
 
 | Category | Percentage | Description |
 |----------|------------|-------------|
-| Production-ready | 90% | Core research loop, agents, LLM providers, validation |
+| Paper gaps | 100% | All 17 paper implementation gaps complete |
+| Ready for user testing | 95% | Core research loop, agents, LLM providers, validation |
 | Deferred | 5% | Phase 4 production mode (polyglot persistence) |
-| Known issues | 5% | Some environment-dependent tests skip |
 
 ### Fixed Issues (Recent)
 
@@ -300,7 +300,7 @@ kosmos/
 
 ### Implementation Complete
 
-All 17 paper implementation gaps have been addressed. Full tracking: [PAPER_IMPLEMENTATION_GAPS.md](docs/PAPER_IMPLEMENTATION_GAPS.md)
+All 17 paper implementation gaps have been addressed. Full tracking: [PAPER_IMPLEMENTATION_GAPS.md](archive/PAPER_IMPLEMENTATION_GAPS.md)
 
 ### Test Coverage
 
@@ -345,12 +345,15 @@ The system is suitable for experimentation and further development. Before produ
 ## Documentation
 
 ### Current Status
-- [120525_implementation_gaps_v2.md](120525_implementation_gaps_v2.md) - Implementation gaps analysis
-- [120625_code_review.md](120625_code_review.md) - Comprehensive code review
+- [archive/PAPER_IMPLEMENTATION_GAPS.md](archive/PAPER_IMPLEMENTATION_GAPS.md) - Paper implementation gaps (17/17 complete)
 - [docs/DEBUG_MODE.md](docs/DEBUG_MODE.md) - Debug mode guide
 
+### Archived Analysis
+- [archive/120525_implementation_gaps_v2.md](archive/120525_implementation_gaps_v2.md) - Original implementation gaps analysis
+- [archive/120625_code_review.md](archive/120625_code_review.md) - Code review (Dec 2025)
+
 ### Operations
-- [GETTING_STARTED.md](GETTING_STARTED.md) - Detailed usage examples
+- [archive/GETTING_STARTED.md](archive/GETTING_STARTED.md) - Detailed usage examples
 - [CONTRIBUTING.md](archive/CONTRIBUTING.md) - Development guidelines (archived)
 - [CHANGELOG.md](CHANGELOG.md) - Version history
 
@@ -364,10 +367,10 @@ The original paper omitted implementation details for 6 critical components. Thi
 | 1 | State Manager schema unspecified | 4-layer hybrid architecture (JSON + Neo4j + Vector + Citations) |
 | 2 | Task generation algorithm unstated | Plan Creator + Plan Reviewer pattern |
 | 3 | Agent integration mechanism unclear | Skill loader with 116 domain-specific skills (see [#67](https://github.com/jimmc414/Kosmos/issues/67)) |
-| 4 | Execution environment not described | Docker-based Jupyter sandbox with pooling |
+| 4 | Execution environment not described | Docker sandbox with Python + R support (see [#69](https://github.com/jimmc414/Kosmos/issues/69)) |
 | 5 | Discovery validation criteria missing | ScholarEval 8-dimension quality framework |
 
-For detailed analysis, see [120525_implementation_gaps_v2.md](120525_implementation_gaps_v2.md).
+For detailed analysis, see [archive/120525_implementation_gaps_v2.md](archive/120525_implementation_gaps_v2.md).
 
 ## Based On
 
@@ -377,14 +380,14 @@ For detailed analysis, see [120525_implementation_gaps_v2.md](120525_implementat
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md).
+See [CONTRIBUTING.md](archive/CONTRIBUTING.md).
 
 Areas where contributions would be useful:
 - Docker sandbox testing and hardening
-- R language support via rpy2
 - Additional scientific domain skills
 - Performance benchmarking with production LLMs
 - Validation studies to measure actual accuracy
+- Multi-tenancy and user isolation
 
 ## License
 

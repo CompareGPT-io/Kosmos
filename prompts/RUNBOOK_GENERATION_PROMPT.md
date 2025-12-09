@@ -30,7 +30,7 @@ Kosmos is an autonomous AI scientist that:
 | Gap 1 | State Manager schema undefined | Hybrid architecture: JSON artifacts + Neo4j knowledge graph |
 | Gap 2 | Task generation strategy undefined | Plan Creator + Plan Reviewer + Novelty Detector orchestration |
 | Gap 3 | Agent integration undefined | SkillLoader with 120+ domain-specific scientific skills |
-| Gap 4 | R vs Python ambiguity | Python-only with Docker sandbox |
+| Gap 4 | R vs Python ambiguity | Python + R via RExecutor with Docker sandbox (#69) |
 | Gap 5 | Discovery validation undefined | ScholarEval 8-dimension validation framework |
 
 ### The Codebase Structure
@@ -78,9 +78,11 @@ kosmos/
 
 ### Current Known Issues
 
-1. **CLI Hangs**: `kosmos run` hangs because ResearchDirectorAgent uses message-passing but no agent runtime processes messages
-2. **SkillLoader Broken**: Returns None because COMMON_SKILLS references non-existent files (see `docs/ISSUE_SKILLLOADER_BROKEN.md`)
-3. **Agent Timing**: Individual agents work but are slow (19-89 seconds per call due to LLM latency)
+> **Note**: Issues #1 and #2 below have been **RESOLVED**. See `archive/PAPER_IMPLEMENTATION_GAPS.md` for full status.
+
+1. ~~**CLI Hangs**~~: ✅ FIXED (#66) - Full async refactor implemented
+2. ~~**SkillLoader Broken**~~: ✅ FIXED (#67) - Domain mapping and skill discovery working
+3. **Agent Timing**: Individual agents work but are slow (19-89 seconds per call due to LLM latency) - *This is expected behavior due to LLM API latency*
 
 ## Your Task
 
@@ -165,7 +167,7 @@ To complete this task, read these files:
 1. `archive/implementation/OPEN_QUESTIONS.md` - Original gap analysis
 2. `archive/implementation/OPENQUESTIONS_SOLUTION.md` - Gap solutions
 3. `docs/E2E_DIAGNOSTIC.md` - Current system state
-4. `docs/ISSUE_SKILLLOADER_BROKEN.md` - Gap 3 status
+4. `archive/issues/ISSUE_SKILLLOADER_BROKEN.md` - Gap 3 status (resolved)
 5. `kosmos/agents/research_director.py` - Main orchestrator
 6. `kosmos/workflow/research_loop.py` - Research workflow
 7. `kosmos/orchestration/plan_creator.py` - Task generation
@@ -213,4 +215,4 @@ The runbook is complete when:
 
 ## Output Destination
 
-Save the generated runbook to: `docs/OPERATIONAL_RUNBOOK.md`
+Save the generated runbook to: `archive/OPERATIONAL_RUNBOOK.md`
