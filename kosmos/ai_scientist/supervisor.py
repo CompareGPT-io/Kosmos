@@ -113,7 +113,7 @@ def _load_sample_json(name: str):
 
     # Get the directory of the current file
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    json_path = os.path.join(current_dir, "data", name)
+    json_path = os.path.join(current_dir, "mock-data", name)
 
     with open(json_path, "r") as f:
         return json.load(f)
