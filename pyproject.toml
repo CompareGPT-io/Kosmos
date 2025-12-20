@@ -156,7 +156,7 @@ all = [
 router = [
     # Optional: Use anthropic_router for CLI routing
     # Users can install this to enable Claude Code CLI support
-    "anthropic-router @ git+https://github.com/jimmc414/claude_n_codex_api_proxy.git",
+    #"anthropic-router @ git+https://github.com/jimmc414/claude_n_codex_api_proxy.git",
 ]
 
 domain-extended = [
